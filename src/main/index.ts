@@ -5,7 +5,7 @@ import type { AppSnapshot, Settings, StatusId } from '@shared/types'
 import { CalendarService, EventKitCalendarProvider, MockCalendarProvider } from './calendar'
 import { Store } from './store'
 import { TimerService } from './timer'
-import { TrayController } from './tray'
+import { TrayController, seedMenuBarPosition } from './tray'
 import { WindowManager } from './windows'
 
 class GerdooApp {
@@ -73,6 +73,12 @@ class GerdooApp {
     powerMonitor.on('unlock-screen', () => this.timer.sync())
 
     this.registerIpc()
+    // First run only: AppKit reads the saved position when the item is created,
+    // so this has to happen before `init`, and never again afterwards.
+    if (!this.store.get().menuBarPositionSeeded) {
+      seedMenuBarPosition()
+      this.store.patch({ menuBarPositionSeeded: true })
+    }
     this.tray.init(this.snapshot())
     this.windows.ensureFocusBar()
     this.applyLoginItem(this.store.get().settings)

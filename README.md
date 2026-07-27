@@ -13,8 +13,9 @@ npm install
 npm run dev
 ```
 
-The app has no Dock icon. Look for the LED-bar glyph in the menu bar — click it
-to show the Focus Bar, click again to hide it (while unpinned).
+The app has no Dock icon. Look for the mascot's head in the menu bar, over by the
+system icons — click it to show the Focus Bar, click again to hide it (while
+unpinned).
 
 | Script | What it does |
 | --- | --- |
@@ -88,6 +89,32 @@ Settings → System → Menu bar picks between **Status** (the default), **Timer
 Only the running countdown ticks per second; every other change rides the normal
 snapshot publish. The tooltip always carries the full label, big line and
 sub-label.
+
+### Where the icon sits
+
+A new status item is placed at the far left of the menu bar extras, which is the
+first place macOS hides things when the bar runs out of room behind the notch —
+a poor spot for something meant to be read at a glance. On its very first run
+Gerdoo writes AppKit's own `NSStatusItem Preferred Position Item-0` default
+(`seedMenuBarPosition()` in `src/main/tray.ts`) to claim a place beside the
+system icons instead. AppKit reads that key only when the item is created, so
+the write has to happen before the tray exists. It happens once ever, guarded by
+`menuBarPositionSeeded` in the store: afterwards the key belongs to the user,
+who can ⌘-drag the icon anywhere they like and have it stay there.
+
+Measured on a 1512 pt menu bar, the value is points from the right: 250 lands
+next to the system icons, 600 in the middle of the third-party ones, and no
+value at all leaves the item leftmost.
+
+### The tray icon
+
+The menu bar icon is the mascot's head — the same circle clusters as
+`Mascot.tsx`, stencilled. A template image is alpha only (macOS recolours it for
+light and dark bars), so the face is punched out of the silhouette rather than
+drawn on top of it, and it is drawn larger than a literal transcription: at
+16 px an eye is two pixels wide, and the mascot's real eyes disappear. The
+lowest ear circle is dropped, and a notch is cut on each side, or the ears read
+as a lump with feet. Regenerate with `npm run icons`.
 
 ### Pinning
 

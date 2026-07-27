@@ -33,6 +33,8 @@ export interface PersistedState {
   focusBarPosition: PersistedBounds | null
   sessions: SessionRecord[]
   calendarCache: CalendarCache | null
+  /** Whether the menu bar item has been given its starting spot — see `tray.ts`. */
+  menuBarPositionSeeded: boolean
 }
 
 /**
@@ -66,7 +68,8 @@ const DEFAULT_STATE: PersistedState = {
   timer: null,
   focusBarPosition: null,
   sessions: [],
-  calendarCache: null
+  calendarCache: null,
+  menuBarPositionSeeded: false
 }
 
 /**

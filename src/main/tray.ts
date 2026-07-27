@@ -1,4 +1,4 @@
-import { Menu, Tray, app, nativeImage } from 'electron'
+import { Menu, Tray, app, nativeImage, systemPreferences } from 'electron'
 import { join } from 'node:path'
 import { STATUSES, STATUS_ORDER } from '@shared/status'
 import { deriveLedContent, deriveMenuBarTitle } from '@shared/display'
@@ -15,6 +15,36 @@ export interface TrayActions {
   openDashboard(): void
   openSettings(): void
   quit(): void
+}
+
+/**
+ * AppKit stores where a status item sits under this key, named after the item's
+ * autosave name — an unnamed item, which is what Electron creates, is `Item-0`.
+ */
+const POSITION_KEY = 'NSStatusItem Preferred Position Item-0'
+
+/**
+ * Points from the right of the menu bar. A brand new status item is placed at
+ * the far left of the extras, which is exactly where macOS starts hiding things
+ * when the bar runs out of room behind the notch — the worst spot for the one
+ * item that is meant to be readable at a glance. Measured on a 1512 pt bar:
+ * 250 lands Gerdoo just left of the system icons, 600 in the middle of the
+ * third-party ones, and no value at all leaves it leftmost.
+ */
+const PREFERRED_POSITION = 250
+
+/**
+ * Claim a spot near the clock, once, before the status item is created — AppKit
+ * reads this at creation and never again. Only ever done on the first run: after
+ * that the key belongs to the user, who can ⌘-drag the icon wherever they like.
+ */
+export function seedMenuBarPosition(): void {
+  if (process.platform !== 'darwin') return
+  try {
+    systemPreferences.setUserDefault(POSITION_KEY, 'float', PREFERRED_POSITION)
+  } catch (error) {
+    console.error('[gerdoo] could not set the menu bar position:', error)
+  }
 }
 
 export class TrayController {
