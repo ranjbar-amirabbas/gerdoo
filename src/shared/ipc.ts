@@ -8,6 +8,8 @@ export const IPC = {
   windowSetScale: 'gerdoo:window:setScale',
   windowSetExpanded: 'gerdoo:window:setExpanded',
   windowToggleExpanded: 'gerdoo:window:toggleExpanded',
+  windowSetCompact: 'gerdoo:window:setCompact',
+  windowToggleCompact: 'gerdoo:window:toggleCompact',
   windowHide: 'gerdoo:window:hide',
   windowOpenDashboard: 'gerdoo:window:openDashboard',
   windowOpenSettings: 'gerdoo:window:openSettings',
@@ -56,6 +58,9 @@ export interface GerdooApi {
     setScale(scale: number): Promise<number>
     setExpanded(expanded: boolean): Promise<boolean>
     toggleExpanded(): Promise<boolean>
+    /** Countdown-and-transport-keys view; leaves `expanded` untouched. */
+    setCompact(compact: boolean): Promise<boolean>
+    toggleCompact(): Promise<boolean>
     hide(): Promise<void>
     closeSelf(): Promise<void>
     openDashboard(): Promise<void>

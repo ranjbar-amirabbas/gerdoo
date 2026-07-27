@@ -510,6 +510,43 @@
   color: var(--accent);
 }
 
+/* ----------------------------------------------------------------- compact */
+
+/* One row: the screen, then the keys that run a session. Sized in `types.ts`
+   as `DEVICE_COMPACT_WIDTH` / `DEVICE_COMPACT_HEIGHT` — keep them in step. */
+.compact {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  padding: 11px 15px 11px 12px; /* the right pad clears the resize corner */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact__screen {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+}
+
+.compact__keys {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.device--compact .device__bezel {
+  padding: 7px 9px;
+}
+
+/* The dog is taller than the compact screen, so it would read as a crop rather
+   than a mascot. The full device keeps it. */
+.device--compact .mascot {
+  display: none;
+}
+
 /* ---------------------------------------------------------------- expanded */
 
 .device__drawer {

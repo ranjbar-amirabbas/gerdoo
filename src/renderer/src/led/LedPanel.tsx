@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { LedContent } from '@shared/display'
+import { BIG_FONT, SMALL_FONT, measureText } from '@shared/led-font'
 import type { Palette } from '@shared/palette'
 import { Mascot } from '@/components/Mascot'
 import { LedEngine, type LedLineSpec, type LedTransition } from './engine'
@@ -7,11 +8,17 @@ import { LedEngine, type LedLineSpec, type LedTransition } from './engine'
 export const LED_COLS = 140
 export const LED_ROWS = 34
 
+/** The compact screen carries one line, so it needs a grid of its own. */
+export const LED_COMPACT_COLS = 64
+export const LED_COMPACT_ROWS = 18
+
 interface LedPanelProps {
   content: LedContent
   palette: Palette
   brightness: number
   reduceMotion: boolean
+  /** One centred line — the countdown alone, for the compact device. */
+  compact?: boolean
 }
 
 function layout(content: LedContent): LedLineSpec[] {
@@ -29,17 +36,50 @@ function layout(content: LedContent): LedLineSpec[] {
   ]
 }
 
+/**
+ * Compact: whatever the big line would have been, vertically centred. With no
+ * countdown to show — an idle status without a clock — the label takes its place
+ * at whichever scale still fits across the narrow grid.
+ */
+function compactLayout(content: LedContent): LedLineSpec[] {
+  const centre = (height: number): number => Math.round((LED_COMPACT_ROWS - height) / 2)
+  if (content.big) {
+    return [{ text: content.big, font: 'big', scale: 1, row: centre(BIG_FONT.height) }]
+  }
+  const scale = measureText(SMALL_FONT, content.label, 2) <= LED_COMPACT_COLS ? 2 : 1
+  return [
+    {
+      text: content.label,
+      font: 'small',
+      scale,
+      row: centre(SMALL_FONT.height * scale)
+    }
+  ]
+}
+
 export function LedPanel({
   content,
   palette,
   brightness,
-  reduceMotion
+  reduceMotion,
+  compact = false
 }: LedPanelProps): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const hostRef = useRef<HTMLDivElement | null>(null)
   const engineRef = useRef<LedEngine | null>(null)
   const lastRef = useRef<LedContent | null>(null)
 
+  const cols = compact ? LED_COMPACT_COLS : LED_COLS
+  const rows = compact ? LED_COMPACT_ROWS : LED_ROWS
+  const pick = compact ? compactLayout : layout
+
+  // What the effects below would have painted, always current — a rebuilt engine
+  // reads it instead of waiting for the next prop change to notice it is blank.
+  const liveRef = useRef({ content, palette, brightness, pick })
+  liveRef.current = { content, palette, brightness, pick }
+
+  // Switching views changes the dot grid, which the engine builds once — so it
+  // is rebuilt from scratch rather than reshaped.
   useEffect(() => {
     const canvas = canvasRef.current
     const host = hostRef.current
@@ -51,9 +91,16 @@ export function LedPanel({
     const resize = (): void => {
       const rect = host.getBoundingClientRect()
       if (rect.width === 0 || rect.height === 0) return
-      engine.setGeometry(LED_COLS, LED_ROWS, rect.width, rect.height, window.devicePixelRatio || 1)
+      engine.setGeometry(cols, rows, rect.width, rect.height, window.devicePixelRatio || 1)
     }
     resize()
+
+    // A fresh engine has no colours, no brightness and nothing lit.
+    const live = liveRef.current
+    engine.setColors(live.palette[live.content.color])
+    engine.setBrightness(live.brightness)
+    lastRef.current = live.content
+    engine.setContent(live.pick(live.content), 'none')
 
     const observer = new ResizeObserver(resize)
     observer.observe(host)
@@ -81,7 +128,7 @@ export function LedPanel({
       engine.destroy()
       engineRef.current = null
     }
-  }, [])
+  }, [cols, rows])
 
   useEffect(() => {
     engineRef.current?.setColors(palette[content.color])
@@ -104,8 +151,8 @@ export function LedPanel({
     // A ticking countdown repaints instantly — physical panels do not fade digits.
     if (reduceMotion) transition = 'none'
 
-    engine.setContent(layout(content), transition)
-  }, [content, reduceMotion])
+    engine.setContent(pick(content), transition)
+  }, [content, reduceMotion, pick])
 
   return (
     <div className="led" ref={hostRef}>
