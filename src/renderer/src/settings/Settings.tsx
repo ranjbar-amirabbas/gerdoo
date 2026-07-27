@@ -181,6 +181,23 @@ export function Settings(): React.ReactElement {
 
           <div className="row">
             <div className="row__text">
+              <span className="row__title">Auto-start next focus</span>
+              <span className="row__hint">
+                Repeat the last focus session as soon as a break ends. With both
+                switches on, Gerdoo cycles on its own and stops after 8 hand-offs.
+              </span>
+            </div>
+            <div className="control">
+              <Switch
+                checked={settings.autoStartFocus}
+                label="Auto-start next focus"
+                onChange={(autoStartFocus) => update({ autoStartFocus })}
+              />
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="row__text">
               <span className="row__title">Default session label</span>
               <span className="row__hint">Shown under the countdown on the LED panel.</span>
             </div>
