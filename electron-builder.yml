@@ -1,0 +1,28 @@
+appId: com.stitch.focusbar
+productName: Stitch
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**/*
+  - resources/**/*
+  - '!resources/stitch-calendar'
+  - package.json
+# The EventKit helper must stay outside the asar so it can be executed, and so
+# macOS can attribute the Calendar permission to a stable binary on disk.
+extraResources:
+  - from: resources/stitch-calendar
+    to: stitch-calendar
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [arm64]
+  darkModeSupport: true
+  # Menu-bar app: no Dock icon, no app switcher entry.
+  extendInfo:
+    LSUIElement: true
+    NSCalendarsUsageDescription: Stitch shows your current and next calendar events on the Focus Bar.
+    NSCalendarsFullAccessUsageDescription: Stitch shows your current and next calendar events on the Focus Bar.
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}

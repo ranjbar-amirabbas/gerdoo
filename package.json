@@ -1,0 +1,34 @@
+{
+  "name": "stitch",
+  "version": "1.0.0",
+  "description": "Stitch — a virtual focus device for the macOS menu bar",
+  "main": "./out/main/index.js",
+  "author": "Stitch",
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "icons": "node scripts/generate-icons.mjs",
+    "build:native": "node scripts/build-native.mjs",
+    "dist": "npm run build:native && npm run build && electron-builder --mac --arm64"
+  },
+  "dependencies": {
+    "lucide-react": "^1.27.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.6"
+  }
+}

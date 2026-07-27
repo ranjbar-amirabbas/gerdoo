@@ -1,0 +1,647 @@
+/* ---------------------------------------------------------------- the device */
+
+.stage {
+  height: 100%;
+  padding: 14px; /* room for the cast shadow inside the transparent window */
+}
+
+.device {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--shell-radius);
+  border: 1px solid var(--shell-edge);
+  background:
+    radial-gradient(120% 80% at 50% -20%, rgba(255, 255, 255, 0.07) 0%, transparent 60%),
+    linear-gradient(180deg, var(--shell-top) 0%, var(--shell-mid) 42%, var(--shell-bottom) 100%);
+  box-shadow: var(--shell-shadow);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Machined top edge + a hairline where the shell meets the desk. */
+.device::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--shell-edge-strong) 18%, var(--shell-edge-strong) 82%, transparent);
+  pointer-events: none;
+}
+
+.device::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(var(--shell-radius) - 1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -14px 24px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ mascot */
+
+/* Sits in the shell background: painted above the enclosure gradient, below
+   every control (which all get `z-index: 1` below), and never clickable. */
+/* Anchored from the top, not the bottom: the grip and the screen have fixed
+   heights, so this keeps the dog inside the control strip in both the
+   collapsed and the expanded window. */
+.mascot {
+  position: absolute;
+  z-index: 0;
+  top: 172px;
+  right: 46px;
+  height: 58px;
+  width: auto;
+  opacity: 0.9;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
+}
+
+.mascot__dancer {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mascot-dance 900ms var(--ease) infinite alternate;
+}
+
+.mascot__head {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mascot-head 900ms var(--ease) infinite alternate;
+}
+
+.mascot__ear {
+  transform-box: fill-box;
+  transform-origin: 70% 10%;
+  animation: mascot-ear 900ms var(--ease) infinite alternate;
+}
+
+/* The mirrored ear is inside a flipped group, so its rotation reads inverted;
+   running it on the opposite phase keeps both ears swinging the same way. */
+.mascot__ear--right {
+  animation-direction: alternate-reverse;
+}
+
+/* Percentages, not pixels: inside the SVG a `px` translate is a user-space
+   unit, so it would shrink with the rendered size. */
+@keyframes mascot-dance {
+  from {
+    transform: translateY(1%) rotate(-5deg) scale(1.03, 0.97);
+  }
+  to {
+    transform: translateY(-5%) rotate(5deg) scale(0.97, 1.03);
+  }
+}
+
+@keyframes mascot-head {
+  from {
+    transform: rotate(4deg);
+  }
+  to {
+    transform: rotate(-4deg);
+  }
+}
+
+@keyframes mascot-ear {
+  from {
+    transform: rotate(-11deg);
+  }
+  to {
+    transform: rotate(11deg);
+  }
+}
+
+/* Reduced motion: the dog stays, the dancing stops. */
+:root[data-reduce-motion='true'] .mascot__dancer,
+:root[data-reduce-motion='true'] .mascot__head,
+:root[data-reduce-motion='true'] .mascot__ear {
+  animation: none;
+}
+
+/* -------------------------------------------------------------------- grip */
+
+.device__grip {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 12px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: var(--letterspace-etched);
+  color: var(--text-faint);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+.brand__mark {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 7px var(--glow);
+  transition: background var(--motion-base) var(--ease), box-shadow var(--motion-base) var(--ease);
+}
+
+.device__grip-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ------------------------------------------------------------------ screen */
+
+/* Fixed height: the drawer, not the screen, absorbs the extra window height.
+   `min-height: 0` matters — the canvas carries an inline pixel height, and a
+   column flex item defaults to `min-height: auto`, which would let that height
+   push the screen open a little more on every layout pass. */
+.device__screen {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 138px;
+  min-height: 0;
+  padding: 0 14px;
+}
+
+.device__bezel {
+  height: 100%;
+  padding: 9px 11px;
+  border-radius: var(--bezel-radius);
+  background: var(--bezel-bg);
+  box-shadow: var(--screen-inset), 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+.led {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: var(--screen-bg);
+  overflow: hidden;
+}
+
+/* Out of flow so its measured size can never feed back into the layout. */
+.led__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* Curved-glass highlight — restrained, so it never fights the pixels. */
+.led__glass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 60% at 50% -30%, rgba(255, 255, 255, 0.08) 0%, transparent 62%),
+    radial-gradient(100% 120% at 50% 130%, rgba(0, 0, 0, 0.45) 0%, transparent 60%);
+}
+
+.led__scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.22) 0px,
+    rgba(0, 0, 0, 0.22) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+/* ---------------------------------------------------------------- controls */
+
+.controls {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  height: 58px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls__divider {
+  width: 1px;
+  height: 24px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+}
+
+.controls__spacer {
+  flex: 1 1 auto;
+}
+
+/* -------------------------------------------------------------------- keys */
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--key-border);
+  border-radius: var(--key-radius);
+  background: var(--key-bg);
+  box-shadow: var(--key-shadow);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: default;
+  transition:
+    background var(--motion-fast) var(--ease),
+    color var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease),
+    box-shadow var(--motion-fast) var(--ease);
+}
+
+.key__icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.key:hover:not(:disabled) {
+  background: var(--key-bg-hover);
+  color: var(--text);
+}
+
+.key:active:not(:disabled) {
+  background: var(--key-bg-active);
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.key:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.key--icon {
+  width: 28px;
+  height: 26px;
+  padding: 0;
+}
+
+.key[data-variant='primary'] {
+  color: #080c11;
+  border-color: color-mix(in srgb, var(--accent) 55%, #000 45%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 92%, #fff 8%) 0%,
+    color-mix(in srgb, var(--accent) 72%, #000 28%) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.key[data-variant='primary']:hover:not(:disabled) {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 100%, #fff 0%) 0%,
+    color-mix(in srgb, var(--accent) 78%, #000 22%) 100%
+  );
+  color: #080c11;
+}
+
+.key[data-active='true'] {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent),
+    0 0 10px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.key--status {
+  gap: 7px;
+  padding: 0 10px;
+  max-width: 148px;
+}
+
+.key--status .key__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+/* -------------------------------------------------------------------- dial */
+
+.dial {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  color: var(--text);
+  background:
+    radial-gradient(70% 70% at 50% 25%, rgba(255, 255, 255, 0.14) 0%, transparent 60%),
+    conic-gradient(from 210deg, #2c3138, #1b1f25 40%, #2c3138 75%, #171b20 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+    0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: box-shadow var(--motion-fast) var(--ease);
+}
+
+.dial[data-disabled] {
+  opacity: 0.4;
+}
+
+.dial:hover:not([data-disabled]) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.dial__value {
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  margin-top: -3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dial__unit {
+  position: absolute;
+  bottom: 9px;
+  font-size: 6px;
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+}
+
+.dial__ticks i {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 2px;
+  height: 4px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.16);
+  transform-origin: 50% 20px;
+  transition: background var(--motion-fast) var(--ease);
+}
+
+.dial__ticks i:nth-child(1) {
+  transform: translateX(-50%) rotate(-54deg);
+}
+.dial__ticks i:nth-child(2) {
+  transform: translateX(-50%) rotate(-18deg);
+}
+.dial__ticks i:nth-child(3) {
+  transform: translateX(-50%) rotate(18deg);
+}
+.dial__ticks i:nth-child(4) {
+  transform: translateX(-50%) rotate(54deg);
+}
+.dial__ticks i:nth-child(5) {
+  transform: translateX(-50%) rotate(90deg);
+}
+.dial__ticks i:nth-child(6) {
+  transform: translateX(-50%) rotate(126deg);
+}
+
+.dial__ticks i[data-on] {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--glow);
+}
+
+/* ------------------------------------------------------------- status menu */
+
+.status-menu {
+  position: relative;
+}
+
+.status-menu__list {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  min-width: 168px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, #22262c, #171a1f);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
+}
+
+.status-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-align: left;
+  cursor: default;
+}
+
+.status-menu__item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.status-menu__item[aria-checked='true'] {
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- expanded */
+
+.device__drawer {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: none;
+}
+
+.device[data-expanded='true'] .device__drawer {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.1));
+  animation: drawer-in var(--motion-base) var(--ease) both;
+}
+
+@keyframes drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.panel {
+  height: 100%;
+  padding: 11px 14px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  overflow-y: auto;
+}
+
+.panel__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.panel__label,
+.field__label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: var(--letterspace-etched);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__input {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #0c0f13;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  color: var(--text);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.field__input::placeholder {
+  color: var(--text-faint);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip,
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 27px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--key-border);
+  background: var(--key-bg);
+  box-shadow: var(--key-shadow);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: default;
+  transition:
+    background var(--motion-fast) var(--ease),
+    color var(--motion-fast) var(--ease),
+    border-color var(--motion-fast) var(--ease);
+}
+
+.chip small {
+  font-size: 7px;
+  letter-spacing: 0.14em;
+  opacity: 0.7;
+}
+
+.chip:hover:not(:disabled),
+.toggle:hover {
+  background: var(--key-bg-hover);
+  color: var(--text);
+}
+
+.chip:disabled {
+  opacity: 0.35;
+}
+
+.chip[data-active='true'],
+.toggle[aria-checked='true'] {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.chip--suggest {
+  align-self: flex-start;
+  margin-top: 2px;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meeting {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.meeting__text {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.meeting__text span {
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.meeting__text--empty {
+  color: var(--text-faint);
+  font-size: 11px;
+}

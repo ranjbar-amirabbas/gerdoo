@@ -1,0 +1,57 @@
+/* Design tokens. Components reference these — never raw colour literals. */
+:root {
+  /* Hardware shell */
+  --shell-top: #2b2f36;
+  --shell-mid: #1c2026;
+  --shell-bottom: #101317;
+  --shell-edge: rgba(255, 255, 255, 0.09);
+  --shell-edge-strong: rgba(255, 255, 255, 0.16);
+  --shell-shadow: 0 22px 44px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shell-radius: 20px;
+
+  /* Recessed screen */
+  --screen-bg: #05070a;
+  --screen-inset:
+    inset 0 2px 5px rgba(0, 0, 0, 0.95),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  --bezel-bg: linear-gradient(180deg, #0a0d11 0%, #05070a 100%);
+  --bezel-radius: 12px;
+
+  /* Keys */
+  --key-bg: linear-gradient(180deg, #34393f 0%, #23272d 55%, #1a1e23 100%);
+  --key-bg-hover: linear-gradient(180deg, #3d434a 0%, #292e34 55%, #1f2429 100%);
+  --key-bg-active: linear-gradient(180deg, #1c2025 0%, #23272d 100%);
+  --key-border: rgba(255, 255, 255, 0.1);
+  --key-shadow: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 2px 4px rgba(0, 0, 0, 0.45);
+  --key-radius: 9px;
+
+  /* Type */
+  --text: #e8eaed;
+  --text-dim: #9aa2ad;
+  --text-faint: #6a727d;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  --letterspace-etched: 0.14em;
+
+  /* Semantic accent — set per render from the LED colour tokens. */
+  --accent: #6fd3ff;
+  --glow: rgba(90, 200, 255, 0.5);
+
+  --focus-ring: 0 0 0 2px rgba(10, 12, 15, 0.9), 0 0 0 4px var(--accent);
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
+  --ease: cubic-bezier(0.32, 0.72, 0.24, 1);
+}
+
+/* The device stays dark in both appearances; only the cast shadow adapts so it
+   sits believably on a light desktop. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --shell-shadow: 0 20px 40px rgba(20, 24, 32, 0.32), 0 3px 10px rgba(20, 24, 32, 0.24);
+    --shell-edge: rgba(255, 255, 255, 0.12);
+  }
+}
+
+:root[data-reduce-motion='true'] {
+  --motion-fast: 0ms;
+  --motion-base: 0ms;
+}

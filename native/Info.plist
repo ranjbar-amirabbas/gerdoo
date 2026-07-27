@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Embedded into the helper binary's __TEXT,__info_plist section: a command
+     line tool has no bundle, and TCC needs these strings to show the prompt. -->
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key>
+  <string>com.stitch.focusbar.calendar-helper</string>
+  <key>CFBundleName</key>
+  <string>Stitch Calendar Helper</string>
+  <key>CFBundleShortVersionString</key>
+  <string>1.0.0</string>
+  <key>NSCalendarsUsageDescription</key>
+  <string>Stitch shows your current and next calendar events on the Focus Bar.</string>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>Stitch shows your current and next calendar events on the Focus Bar.</string>
+</dict>
+</plist>
