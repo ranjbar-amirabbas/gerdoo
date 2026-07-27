@@ -6,6 +6,33 @@ timer, your status, and what is coming up next.
 
 <!-- Focus Bar: 520 × 230 collapsed, 520 × 490 expanded. -->
 
+## Installing a release
+
+Grab the `.dmg` from [Releases](https://github.com/ranjbar-amirabbas/gerdoo/releases),
+open it and drag Gerdoo to Applications. Apple silicon (arm64) only.
+
+The build is ad-hoc signed but **not notarized** — that needs a paid Apple
+Developer account — so macOS blocks it the first time:
+
+> "Gerdoo.app" Not Opened — Apple could not verify "Gerdoo.app" is free of
+> malware that may harm your Mac or compromise your privacy.
+
+The quickest way past it is to drop the quarantine flag your browser attached to
+the download:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Gerdoo.app
+```
+
+Or, without the Terminal: open the app, dismiss the warning with **Done**, then
+go to **System Settings → Privacy & Security**, scroll to *Security*, and click
+**Open Anyway**.
+
+On macOS 15 and later, right-clicking the app and choosing *Open* does **not**
+work — Apple removed that bypass. If you instead see *"Gerdoo.app" is damaged and
+can't be opened*, that is a different failure: the app reached you with a broken
+signature. Releases before v1.1.1 have that problem; take a later one.
+
 ## Running it
 
 ```bash
