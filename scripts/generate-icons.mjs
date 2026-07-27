@@ -455,3 +455,15 @@ function drawAppIcon(canvas) {
 // Windows needs a real ICO for the executable, the installer and the taskbar.
 writeIcon('build/icon.png', 1024, drawAppIcon, { supersample: 3 })
 writeIco('build/icon.ico', [16, 24, 32, 48, 64, 128, 256], drawAppIcon, { supersample: 4 })
+
+// iOS and watchOS take a single 1024 and derive every size themselves, so the
+// asset catalogues get the same drawing the desktop icon is made of.
+writeIcon('apple/Gerdoo/Assets.xcassets/AppIcon.appiconset/icon-1024.png', 1024, drawAppIcon, {
+  supersample: 3
+})
+writeIcon(
+  'apple/GerdooWatch/Assets.xcassets/AppIcon.appiconset/icon-1024.png',
+  1024,
+  drawAppIcon,
+  { supersample: 3 }
+)

@@ -8,3 +8,10 @@ resources/gerdoo-calendar
 
 # Bundled test output — see scripts/test.mjs
 .test-build/
+
+# Xcode / SwiftPM — see apple/README.md
+.build/
+DerivedData/
+*.xcuserdatad
+xcuserdata/
+apple/**/Package.resolved
