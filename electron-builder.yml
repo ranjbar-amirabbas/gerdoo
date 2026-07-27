@@ -13,6 +13,12 @@ files:
 extraResources:
   - from: resources/gerdoo-calendar
     to: gerdoo-calendar
+# Ad-hoc signs the bundle. Without a Developer ID certificate electron-builder
+# skips signing, leaving Electron's own linker signature — which no longer
+# matches the repacked app, so macOS calls it damaged and refuses to open it.
+# `afterPack` rather than `afterSign`: the latter is skipped when no signing
+# occurred, which is exactly the case this handles.
+afterPack: scripts/adhoc-sign.mjs
 mac:
   category: public.app-category.productivity
   target:
