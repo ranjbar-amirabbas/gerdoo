@@ -43,19 +43,18 @@
 
 /* Sits in the shell background: painted above the enclosure gradient, below
    every control (which all get `z-index: 1` below), and never clickable. */
-/* Anchored from the top, not the bottom: the grip and the screen have fixed
-   heights, so this keeps the dog inside the control strip in both the
-   collapsed and the expanded window. */
+/* Fills the LED screen behind the digits. It sits under the canvas, which is
+   transparent apart from the dots, so the dog reads through the dot grid
+   instead of competing with it. `.led` clips the overflow. */
 .mascot {
   position: absolute;
+  inset: 0;
   z-index: 0;
-  top: 172px;
-  right: 46px;
-  height: 58px;
+  margin: auto;
+  height: 158%;
   width: auto;
-  opacity: 0.9;
+  opacity: 0.5;
   pointer-events: none;
-  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
 }
 
 .mascot__dancer {

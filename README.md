@@ -23,6 +23,7 @@ to show the Focus Bar, click again to hide it (while unpinned).
 | `npm run typecheck` | Type-checks the Node side and the web side separately |
 | `npm run dist` | Builds and packages a macOS arm64 DMG into `dist/` |
 | `npm run icons` | Regenerates the tray template images and app icon |
+| `npm run build:native` | Compiles the EventKit calendar helper (Swift, macOS only) |
 
 ## How it is put together
 
@@ -94,18 +95,42 @@ system browser. The renderer sees exactly the methods declared in
 
 ## Calendar data
 
-Calendar events currently come from `MockCalendarProvider` — today's and
-tomorrow's sample schedule. To use real data, implement `CalendarProvider`:
+Events come from the real **macOS Calendar** via EventKit. Electron has no
+EventKit binding, so `native/StitchCalendar.swift` is compiled to a small helper
+binary that prints JSON, and the main process spawns it on each refresh:
 
-```ts
-export interface CalendarProvider {
-  listEvents(now: number): Promise<CalendarEvent[]>
-}
+```bash
+npm run build:native      # → resources/stitch-calendar (also run by `npm run dist`)
+./resources/stitch-calendar --status     # permission state, no prompt
+./resources/stitch-calendar --days 7     # events as JSON
 ```
 
-and pass it to `CalendarService` in `src/main/index.ts`. Nothing downstream of
-that file knows where events come from. Realistic options: a small Swift
-EventKit helper binary, an ICS feed URL, or Google Calendar OAuth.
+The helper carries its `Info.plist` in a linked `__TEXT,__info_plist` section
+(a CLI tool has no bundle for TCC to read usage strings from) and is ad-hoc
+signed so macOS keeps a stable identity for the granted permission. It ships
+**outside the asar** via `extraResources` — code inside an asar cannot be
+executed.
+
+### Granting access
+
+macOS only shows the Calendar prompt when the request comes from a real app
+bundle, so **use the packaged app** (`npm run dist`, then launch
+`dist/mac-arm64/Stitch.app`). Stitch asks once, shortly after first launch;
+Settings → Calendar access can ask again, or deep-link to Privacy & Security →
+Calendars if the answer was no. Running `npm run dev` inherits Electron's own
+bundle identity, which has no usage strings — expect `notDetermined` there and
+either package the app or add the `NSCalendars*` keys to the dev Electron's
+`Info.plist`.
+
+Behaviour when a read fails: the last successful set of events is reused —
+stale truth beats invented meetings — and only a machine that has never granted
+access falls back to `MockCalendarProvider`'s sample schedule. The real reason
+stays in `calendar.access` so Settings can explain itself. Events are cached in
+`userData` so the panel shows your next meeting immediately at launch.
+
+Swapping in a different source (an ICS feed, Google Calendar) means implementing
+`CalendarProvider` in `src/main/calendar.ts` — nothing downstream knows where
+events come from.
 
 ## Keyboard
 
@@ -118,7 +143,10 @@ EventKit helper binary, an ICS feed URL, or Google Calendar OAuth.
 
 ## Known gaps
 
-- Calendar events are mock data (see above).
+- Calendar access needs the packaged app; `npm run dev` cannot prompt (above).
+- The helper reads a seven-day window from the start of today
+  (`CALENDAR_WINDOW_DAYS` in `src/main/calendar.ts`). Only today's events are
+  listed in the Dashboard; the rest feed "now" and "next".
 - The packaged app is unsigned; `npm run dist` produces a DMG that macOS will
   gatekeeper-warn about until you sign and notarise it.
 - `npm audit` reports advisories in the `electron-builder` dependency tree only;
