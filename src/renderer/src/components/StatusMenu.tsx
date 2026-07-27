@@ -1,14 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { SEMANTIC_COLORS, STATUSES, STATUS_ORDER } from '@shared/status'
+import type { Palette } from '@shared/palette'
+import { STATUSES, STATUS_ORDER } from '@shared/status'
 import type { StatusId } from '@shared/types'
 
 interface StatusMenuProps {
   value: StatusId
   customLabel: string
+  palette: Palette
   onSelect(id: StatusId): void
 }
 
-export function StatusMenu({ value, customLabel, onSelect }: StatusMenuProps): React.ReactElement {
+export function StatusMenu({
+  value,
+  customLabel,
+  palette,
+  onSelect
+}: StatusMenuProps): React.ReactElement {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const meta = STATUSES[value]
@@ -45,7 +52,7 @@ export function StatusMenu({ value, customLabel, onSelect }: StatusMenuProps): R
       >
         <span
           className="status-dot"
-          style={{ background: SEMANTIC_COLORS[meta.color].accent }}
+          style={{ background: palette[meta.color].accent }}
           aria-hidden="true"
         />
         <span className="key__label">{label}</span>
@@ -68,7 +75,7 @@ export function StatusMenu({ value, customLabel, onSelect }: StatusMenuProps): R
               >
                 <span
                   className="status-dot"
-                  style={{ background: SEMANTIC_COLORS[item.color].accent }}
+                  style={{ background: palette[item.color].accent }}
                   aria-hidden="true"
                 />
                 {id === 'custom' ? customLabel || 'Custom' : item.label}

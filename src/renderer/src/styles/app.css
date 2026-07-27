@@ -480,3 +480,73 @@ body.body--app {
   width: 160px;
   accent-color: var(--accent);
 }
+
+/* ------------------------------------------------------------- swatches */
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+  /* Keeps the row from crowding the label on the narrow Settings window. */
+  max-width: 236px;
+}
+
+.swatch {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  cursor: default;
+  transition:
+    transform var(--motion-fast) var(--ease),
+    box-shadow var(--motion-fast) var(--ease);
+}
+
+.swatch:hover {
+  transform: translateY(-1px);
+}
+
+.swatch[data-active='true'] {
+  box-shadow:
+    0 0 0 2px #0b0d10,
+    0 0 0 3.5px var(--accent);
+}
+
+/* The default palette has no single colour — show it as the whole family. */
+.swatch[data-default='true'] {
+  background: conic-gradient(
+    from 210deg,
+    #c8823c,
+    #ffbd5c,
+    #ff8a4c,
+    #ff6a5e,
+    #b78dff,
+    #5c86ff,
+    #c8823c
+  );
+}
+
+.swatch--custom {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.swatch--custom[data-active='true'] {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+/* The native colour well is the whole tile; the pipette sits on top of it. */
+.swatch--custom input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  cursor: default;
+}

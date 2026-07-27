@@ -1,5 +1,6 @@
 import { BrowserWindow, Notification, app, ipcMain, powerMonitor, shell } from 'electron'
 import { IPC, type SetStatusRequest, type StartTimerRequest } from '@shared/ipc'
+import { normalizeAccent } from '@shared/palette'
 import type { AppSnapshot, Settings, StatusId } from '@shared/types'
 import { CalendarService, EventKitCalendarProvider, MockCalendarProvider } from './calendar'
 import { Store } from './store'
@@ -180,6 +181,10 @@ class GerdooApp {
   }
 
   private updateSettings(patch: Partial<Settings>): void {
+    // A malformed colour would poison every window, so it never reaches disk.
+    if (patch.accentColor !== undefined) {
+      patch = { ...patch, accentColor: normalizeAccent(patch.accentColor) }
+    }
     const settings = this.store.patchSettings(patch)
     if (patch.launchAtLogin !== undefined) this.applyLoginItem(settings)
     if (patch.selectedPresetIndex !== undefined || patch.presets !== undefined) {

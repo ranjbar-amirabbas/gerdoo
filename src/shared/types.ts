@@ -97,6 +97,11 @@ export interface Settings {
   soundEnabled: boolean
   /** 0.35 – 1. Scales LED pixel intensity. */
   brightness: number
+  /**
+   * `#rrggbb` the whole palette is derived from, or null for the built-in
+   * multi-hue one. See `@shared/palette`.
+   */
+  accentColor: string | null
   /** null = follow the system reduced-motion setting. */
   reduceMotion: boolean | null
   autoStartBreak: boolean

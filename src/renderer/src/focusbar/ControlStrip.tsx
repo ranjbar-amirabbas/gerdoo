@@ -1,4 +1,5 @@
 import { Pause, Play, Settings2, Square } from 'lucide-react'
+import { paletteFor } from '@shared/palette'
 import type { AppSnapshot } from '@shared/types'
 import { DeviceButton } from '@/components/DeviceButton'
 import { PresetDial } from '@/components/PresetDial'
@@ -49,6 +50,7 @@ export function ControlStrip({ snapshot }: ControlStripProps): React.ReactElemen
       <StatusMenu
         value={status.id}
         customLabel={status.customLabel}
+        palette={paletteFor(settings.accentColor)}
         onSelect={(id) => void window.gerdoo.status.set({ id })}
       />
 
