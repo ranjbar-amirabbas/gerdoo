@@ -1,4 +1,4 @@
-import { Coffee, LayoutDashboard, Pin, Volume2, VolumeX } from 'lucide-react'
+import { Coffee, LayoutDashboard, Pin, Repeat, Volume2, VolumeX } from 'lucide-react'
 import { describeWhen, suggestFocus } from '@shared/display'
 import { paletteFor } from '@shared/palette'
 import { STATUSES, STATUS_ORDER } from '@shared/status'
@@ -14,6 +14,8 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
   const palette = paletteFor(settings.accentColor)
   const suggestion = suggestFocus(calendar.next, now, settings.presets)
   const sessionActive = timer.phase === 'running' || timer.phase === 'paused'
+  // One switch for the whole focus → break → focus loop; Settings splits the two.
+  const autoCycle = settings.autoStartBreak && settings.autoStartFocus
 
   return (
     <div className="panel">
@@ -123,6 +125,22 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
           >
             {settings.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
             Sound
+          </button>
+          <button
+            type="button"
+            className="toggle no-drag"
+            role="switch"
+            aria-checked={autoCycle}
+            title="Roll straight from focus into a break, and back again"
+            onClick={() =>
+              void window.gerdoo.settings.update({
+                autoStartBreak: !autoCycle,
+                autoStartFocus: !autoCycle
+              })
+            }
+          >
+            <Repeat size={14} />
+            Auto-cycle
           </button>
           <button
             type="button"

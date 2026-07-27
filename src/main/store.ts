@@ -56,6 +56,7 @@ export const DEFAULT_SETTINGS: Settings = {
   accentColor: null,
   reduceMotion: null,
   autoStartBreak: false,
+  autoStartFocus: false,
   launchAtLogin: false,
   hideOnBlur: true,
   defaultTitle: 'DEEP WORK',

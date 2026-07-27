@@ -1,7 +1,7 @@
 import { BrowserWindow, Notification, app, ipcMain, powerMonitor, shell } from 'electron'
 import { IPC, type SetStatusRequest, type StartTimerRequest } from '@shared/ipc'
 import { normalizeAccent } from '@shared/palette'
-import type { AppSnapshot, Settings, StatusId } from '@shared/types'
+import type { AppSnapshot, Settings, StatusId, TimerMode } from '@shared/types'
 import {
   CalendarService,
   EventKitCalendarProvider,
@@ -12,6 +12,14 @@ import { Store } from './store'
 import { TimerService } from './timer'
 import { TrayController, seedMenuBarPosition } from './tray'
 import { WindowManager } from './windows'
+
+/**
+ * How many hand-offs auto-start may chain before it stops on its own. With both
+ * auto-start switches on, focus and break would otherwise keep relaying forever
+ * — this ends the loop after a long stretch away from the keyboard. Any manual
+ * start or stop resets the count.
+ */
+const AUTO_CYCLE_LIMIT = 8
 
 class GerdooApp {
   private readonly store = new Store()
@@ -29,6 +37,10 @@ class GerdooApp {
   )
   private readonly timer: TimerService
   private readonly tray: TrayController
+  /** Hand-offs auto-start has chained since the last manual start or stop. */
+  private autoStarts = 0
+  /** Length and label of the last focus session, replayed by auto-start focus. */
+  private lastFocus: { minutes: number; title: string } | null = null
 
   constructor() {
     const { settings, timer } = this.store.get()
@@ -127,18 +139,20 @@ class GerdooApp {
         ? settings.breakMinutes
         : (settings.presets[settings.selectedPresetIndex] ?? 25)
     const mode = request.mode ?? 'focus'
+    const minutes = request.minutes ?? fallbackMinutes
+    const title = request.title ?? this.timer.getState().title ?? settings.defaultTitle
     const previousMode = this.timer.getState().mode
-    this.timer.start({
-      mode,
-      minutes: request.minutes ?? fallbackMinutes,
-      title: request.title ?? this.timer.getState().title ?? settings.defaultTitle
-    })
+    // Starting by hand ends whatever chain was running.
+    this.autoStarts = 0
+    if (mode === 'focus') this.lastFocus = { minutes, title }
+    this.timer.start({ mode, minutes, title })
     // A mode switch already fired its own cue via the `modeChange` handler.
     if (mode === previousMode) this.windows.playSound('start')
   }
 
   private stopTimer(): void {
     const state = this.timer.getState()
+    this.autoStarts = 0
     if (state.phase === 'completed') {
       this.timer.acknowledgeCompletion()
       return
@@ -149,7 +163,7 @@ class GerdooApp {
     this.publish()
   }
 
-  private onSessionComplete(mode: 'focus' | 'break'): void {
+  private onSessionComplete(mode: TimerMode): void {
     const state = this.timer.getState()
     this.store.addSession({
       id: `${state.startedAt ?? Date.now()}-${mode}`,
@@ -161,21 +175,43 @@ class GerdooApp {
       actualMs: state.durationMs,
       completed: true
     })
-    const autoBreak = mode === 'focus' && this.store.get().settings.autoStartBreak
+    if (mode === 'focus') {
+      this.lastFocus = { minutes: state.durationMs / 60_000, title: state.title }
+    }
+
+    const { settings } = this.store.get()
+    const wantsNext = mode === 'focus' ? settings.autoStartBreak : settings.autoStartFocus
+    const handOff = wantsNext && this.autoStarts < AUTO_CYCLE_LIMIT
     // The mode-change cue below covers the hand-off, so don't stack two sounds.
-    if (!autoBreak) this.windows.playSound('complete')
+    if (!handOff) this.windows.playSound('complete')
 
     if (Notification.isSupported()) {
       new Notification({
         title: mode === 'focus' ? 'Focus session complete' : 'Break over',
-        body: mode === 'focus' ? 'Time for a break.' : 'Ready for the next session?',
-        silent: !this.store.get().settings.soundEnabled
+        body: handOff
+          ? mode === 'focus'
+            ? 'Break starting now.'
+            : 'Next focus session starting now.'
+          : mode === 'focus'
+            ? 'Time for a break.'
+            : 'Ready for the next session?',
+        silent: !settings.soundEnabled
       }).show()
     }
 
-    const { settings } = this.store.get()
-    if (autoBreak) {
-      this.timer.start({ mode: 'break', minutes: settings.breakMinutes, title: 'BREAK' })
+    if (handOff) {
+      this.autoStarts += 1
+      if (mode === 'focus') {
+        this.timer.start({ mode: 'break', minutes: settings.breakMinutes, title: 'BREAK' })
+      } else {
+        // Repeat the focus session that led into this break, so a 15/5 rhythm
+        // keeps its 15 rather than snapping back to the selected preset.
+        const next = this.lastFocus ?? {
+          minutes: settings.presets[settings.selectedPresetIndex] ?? 25,
+          title: settings.defaultTitle
+        }
+        this.timer.start({ mode: 'focus', minutes: next.minutes, title: next.title })
+      }
     }
     this.publish()
   }
