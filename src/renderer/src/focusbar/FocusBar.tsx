@@ -6,6 +6,7 @@ import { useNow } from '@/hooks/useNow'
 import { usePalette } from '@/hooks/usePalette'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useSnapshot } from '@/hooks/useSnapshot'
+import { hasAccelerator, shortcut } from '@/platform'
 import { playCue } from '@/sound'
 import { ControlStrip } from './ControlStrip'
 import { ExpandedPanel } from './ExpandedPanel'
@@ -23,10 +24,10 @@ export function FocusBar(): React.ReactElement {
       if (event.key === 'Escape') {
         // Main ignores this while pinned, so a pinned bar never vanishes.
         void window.gerdoo.window.hide()
-      } else if (event.key.toLowerCase() === 'e' && event.metaKey) {
+      } else if (event.key.toLowerCase() === 'e' && hasAccelerator(event)) {
         event.preventDefault()
         void window.gerdoo.window.toggleExpanded()
-      } else if (event.key.toLowerCase() === 'p' && event.metaKey) {
+      } else if (event.key.toLowerCase() === 'p' && hasAccelerator(event)) {
         event.preventDefault()
         void window.gerdoo.window.togglePinned()
       }
@@ -62,7 +63,11 @@ export function FocusBar(): React.ReactElement {
               className="key key--icon no-drag"
               data-active={pinned ? 'true' : undefined}
               aria-pressed={pinned}
-              title={pinned ? 'Unpin from top (⌘P)' : 'Pin above other apps (⌘P)'}
+              title={
+                pinned
+                  ? `Unpin from top (${shortcut('p')})`
+                  : `Pin above other apps (${shortcut('p')})`
+              }
               aria-label={pinned ? 'Unpin Focus Bar' : 'Pin Focus Bar above other apps'}
               onClick={() => void window.gerdoo.window.togglePinned()}
             >
@@ -72,7 +77,11 @@ export function FocusBar(): React.ReactElement {
               type="button"
               className="key key--icon no-drag"
               aria-expanded={expanded}
-              title={expanded ? 'Collapse controls (⌘E)' : 'Expand controls (⌘E)'}
+              title={
+                expanded
+                  ? `Collapse controls (${shortcut('e')})`
+                  : `Expand controls (${shortcut('e')})`
+              }
               aria-label={expanded ? 'Collapse controls' : 'Expand controls'}
               onClick={() => void window.gerdoo.window.toggleExpanded()}
             >

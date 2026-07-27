@@ -1,7 +1,18 @@
+import { useState } from 'react'
 import { Pipette } from 'lucide-react'
 import { ACCENT_PRESETS, normalizeAccent, paletteFor } from '@shared/palette'
-import type { CalendarAccess, MenuBarText, Settings as SettingsShape } from '@shared/types'
+import type {
+  AppSnapshot,
+  CalendarAccess,
+  CalendarSource,
+  MenuBarText,
+  Settings as SettingsShape
+} from '@shared/types'
 import { useSnapshot } from '@/hooks/useSnapshot'
+import { IS_MAC } from '@/platform'
+
+/** Where the tray icon lives, in the words the host platform uses for it. */
+const TRAY_LABEL = IS_MAC ? 'Menu bar' : 'System tray'
 
 const MENU_BAR_TEXT_LABEL: Record<MenuBarText, string> = {
   status: 'Status',
@@ -9,20 +20,63 @@ const MENU_BAR_TEXT_LABEL: Record<MenuBarText, string> = {
   off: 'Icon only'
 }
 
-const MENU_BAR_TEXT_HINT: Record<MenuBarText, string> = {
-  status: 'Shows your status, and the countdown while a session runs.',
-  timer: 'Shows the countdown only while a session runs.',
-  off: 'Just the menu bar icon.'
-}
+/**
+ * Only macOS draws text beside a tray icon; everywhere else the same line goes
+ * into the tooltip, so the setting still does something — it just needs a
+ * hover to read.
+ */
+const MENU_BAR_TEXT_HINT: Record<MenuBarText, string> = IS_MAC
+  ? {
+      status: 'Shows your status, and the countdown while a session runs.',
+      timer: 'Shows the countdown only while a session runs.',
+      off: 'Just the menu bar icon.'
+    }
+  : {
+      status: 'Puts your status, and any running countdown, in the tray tooltip.',
+      timer: 'Puts the countdown in the tray tooltip while a session runs.',
+      off: 'Just the tray icon.'
+    }
 
-const CALENDAR_ACCESS_HINT: Record<CalendarAccess, string> = {
+const SYSTEM_ACCESS_HINT: Record<CalendarAccess, string> = {
   authorized: 'Reading events from macOS Calendar.',
   notDetermined: 'macOS has not been asked for access yet.',
   denied: 'Access was refused — turn Gerdoo on under Privacy & Security → Calendars.',
   restricted: 'Calendar access is blocked by a system policy.',
   unavailable: 'The calendar helper is missing. Run `npm run build:native`.',
+  notConfigured: 'No calendar is selected.',
   error: 'The calendar helper could not be read. Showing sample events.',
   sample: 'Using the built-in sample schedule.'
+}
+
+const CALENDAR_SOURCE_LABEL: Record<CalendarSource, string> = {
+  system: 'macOS Calendar',
+  ics: 'Feed URL',
+  sample: 'Sample'
+}
+
+/**
+ * The system source is EventKit, so it is offered on macOS only — elsewhere it
+ * would lead to a permission prompt that never arrives. A subscribed feed works
+ * anywhere, which is how Windows gets real events.
+ */
+const CALENDAR_SOURCES: CalendarSource[] = IS_MAC
+  ? ['system', 'ics', 'sample']
+  : ['ics', 'sample']
+
+/** One line under the source picker saying what Gerdoo is actually reading. */
+function sourceHint(calendar: AppSnapshot['calendar'], eventCount: number): string {
+  if (calendar.source === 'sample') return 'Using the built-in sample schedule.'
+  if (calendar.source === 'system') return SYSTEM_ACCESS_HINT[calendar.access]
+  switch (calendar.access) {
+    case 'authorized':
+      return `${eventCount} event${eventCount === 1 ? '' : 's'} from the feed.`
+    case 'notConfigured':
+      return 'Paste the URL of an iCalendar feed below.'
+    default:
+      return calendar.detail
+        ? `The feed could not be read: ${calendar.detail}`
+        : 'The feed could not be read.'
+  }
 }
 
 function Switch({
@@ -92,6 +146,50 @@ function AccentPicker({
         />
       </label>
     </div>
+  )
+}
+
+/**
+ * The feed URL, held locally while it is being typed.
+ *
+ * Committing on every keystroke would send Gerdoo off to fetch half-written
+ * URLs, so the value only reaches the main process on blur or Enter — and the
+ * field re-syncs to the saved value whenever that changes underneath it.
+ */
+function IcsUrlField({
+  value,
+  onCommit
+}: {
+  value: string
+  onCommit(next: string): void
+}): React.ReactElement {
+  const [draft, setDraft] = useState(value)
+  const [lastSaved, setLastSaved] = useState(value)
+  if (value !== lastSaved) {
+    setLastSaved(value)
+    setDraft(value)
+  }
+
+  const commit = (): void => {
+    const next = draft.trim()
+    if (next !== value) onCommit(next)
+  }
+
+  return (
+    <input
+      className="input input--wide"
+      type="url"
+      inputMode="url"
+      spellCheck={false}
+      placeholder="https://example.com/calendar.ics"
+      value={draft}
+      aria-label="Calendar feed URL"
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') commit()
+      }}
+    />
   )
 }
 
@@ -292,11 +390,11 @@ export function Settings(): React.ReactElement {
 
           <div className="row">
             <div className="row__text">
-              <span className="row__title">Menu bar</span>
+              <span className="row__title">{TRAY_LABEL}</span>
               <span className="row__hint">{MENU_BAR_TEXT_HINT[settings.menuBarText]}</span>
             </div>
             <div className="control">
-              <div className="segmented" role="group" aria-label="Menu bar">
+              <div className="segmented" role="group" aria-label={TRAY_LABEL}>
                 {(['status', 'timer', 'off'] as const).map((option) => (
                   <button
                     key={option}
@@ -328,62 +426,101 @@ export function Settings(): React.ReactElement {
           <div className="row">
             <div className="row__text">
               <span className="row__title">Calendar source</span>
-              <span className="row__hint">{CALENDAR_ACCESS_HINT[snapshot.calendar.access]}</span>
+              <span className="row__hint">
+                {sourceHint(snapshot.calendar, snapshot.calendar.events.length)}
+              </span>
             </div>
             <div className="control">
               <div className="segmented" role="group" aria-label="Calendar source">
-                {(['system', 'sample'] as const).map((source) => (
+                {CALENDAR_SOURCES.map((source) => (
                   <button
                     key={source}
                     type="button"
                     data-active={settings.calendarSource === source ? 'true' : undefined}
                     onClick={() => update({ calendarSource: source })}
                   >
-                    {source === 'system' ? 'macOS Calendar' : 'Sample'}
+                    {CALENDAR_SOURCE_LABEL[source]}
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="row">
-            <div className="row__text">
-              <span className="row__title">Calendar access</span>
-              <span className="row__hint">
-                {snapshot.calendar.access === 'authorized'
-                  ? `${snapshot.calendar.events.length} event${snapshot.calendar.events.length === 1 ? '' : 's'} loaded`
-                  : 'Gerdoo reads events only to show what is current and next.'}
-              </span>
+          {settings.calendarSource === 'ics' ? (
+            <>
+              <div className="row">
+                <div className="row__text">
+                  <span className="row__title">Feed URL</span>
+                  <span className="row__hint">
+                    The private iCalendar address your calendar offers under “secret
+                    address”, “publish” or “share”. Gerdoo only reads it.
+                  </span>
+                </div>
+                <div className="control">
+                  <IcsUrlField value={settings.icsUrl} onCommit={(icsUrl) => update({ icsUrl })} />
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="row__text">
+                  <span className="row__title">Feed</span>
+                  <span className="row__hint">
+                    Re-read every five minutes; Refresh fetches it now.
+                  </span>
+                </div>
+                <div className="control">
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => void window.gerdoo.calendar.refresh()}
+                  >
+                    Refresh
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : null}
+
+          {IS_MAC && settings.calendarSource === 'system' ? (
+            <div className="row">
+              <div className="row__text">
+                <span className="row__title">Calendar access</span>
+                <span className="row__hint">
+                  {snapshot.calendar.access === 'authorized'
+                    ? `${snapshot.calendar.events.length} event${snapshot.calendar.events.length === 1 ? '' : 's'} loaded`
+                    : 'Gerdoo reads events only to show what is current and next.'}
+                </span>
+              </div>
+              <div className="control">
+                {snapshot.calendar.access === 'denied' ||
+                snapshot.calendar.access === 'restricted' ? (
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => void window.gerdoo.calendar.openPrivacySettings()}
+                  >
+                    Open Privacy Settings
+                  </button>
+                ) : snapshot.calendar.access === 'authorized' ? (
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => void window.gerdoo.calendar.refresh()}
+                  >
+                    Refresh
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="button button--primary"
+                    onClick={() => void window.gerdoo.calendar.requestAccess()}
+                  >
+                    Grant access
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="control">
-              {snapshot.calendar.access === 'denied' ||
-              snapshot.calendar.access === 'restricted' ? (
-                <button
-                  type="button"
-                  className="button"
-                  onClick={() => void window.gerdoo.calendar.openPrivacySettings()}
-                >
-                  Open Privacy Settings
-                </button>
-              ) : snapshot.calendar.access === 'authorized' ? (
-                <button
-                  type="button"
-                  className="button"
-                  onClick={() => void window.gerdoo.calendar.refresh()}
-                >
-                  Refresh
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="button button--primary"
-                  onClick={() => void window.gerdoo.calendar.requestAccess()}
-                >
-                  Grant access
-                </button>
-              )}
-            </div>
-          </div>
+          ) : null}
         </section>
       </div>
     </div>

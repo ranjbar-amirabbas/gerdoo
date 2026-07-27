@@ -29,7 +29,8 @@
   --text: #e8eaed;
   --text-dim: #9aa2ad;
   --text-faint: #6a727d;
-  --font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable Text',
+    'Segoe UI', 'Helvetica Neue', system-ui, sans-serif;
   --letterspace-etched: 0.14em;
 
   /* Semantic accent — set per render from the LED colour tokens. */

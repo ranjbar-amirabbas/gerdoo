@@ -12,6 +12,9 @@ body.body--app {
   overflow: hidden;
 }
 
+/* Height matches `APP_TITLEBAR_HEIGHT` in `main/windows.ts`, which is what the
+   Windows control overlay is sized to. The padding leaves room for the native
+   window controls, which sit left on macOS and right on Windows. */
 .app__titlebar {
   -webkit-app-region: drag;
   flex: 0 0 auto;
@@ -21,6 +24,16 @@ body.body--app {
   align-items: center;
   gap: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html[data-platform='win32'] .app__titlebar {
+  /* Minimise, maximise and close, at 46 px tall. */
+  padding: 0 148px 0 18px;
+}
+
+/* No overlay, no reserved space: the frame draws its own controls. */
+html[data-platform='linux'] .app__titlebar {
+  padding: 0 18px;
 }
 
 .app__title {

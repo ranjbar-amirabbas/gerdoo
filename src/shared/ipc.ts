@@ -39,6 +39,11 @@ export interface SetStatusRequest {
 }
 
 export interface GerdooApi {
+  /**
+   * `process.platform` of the host, for chrome and shortcut labels. Typed as a
+   * plain string: the renderer has no Node types, and only compares it.
+   */
+  platform: string
   getSnapshot(): Promise<AppSnapshot>
   onSnapshot(listener: (snapshot: AppSnapshot) => void): () => void
   onSound(listener: (cue: string) => void): () => void

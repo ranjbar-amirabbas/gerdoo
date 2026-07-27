@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path'
 import type {
   CalendarAccess,
   CalendarEvent,
+  CalendarSource,
   SessionRecord,
   Settings,
   StatusState,
@@ -21,6 +22,8 @@ export interface CalendarCache {
   access: CalendarAccess
   events: CalendarEvent[]
   fetchedAt: number
+  /** Which source wrote it — a cache from another one is not reused. */
+  source?: CalendarSource
 }
 
 export interface PersistedState {
@@ -56,7 +59,11 @@ export const DEFAULT_SETTINGS: Settings = {
   launchAtLogin: false,
   hideOnBlur: true,
   defaultTitle: 'DEEP WORK',
-  calendarSource: 'system',
+  // Reading the system calendar goes through EventKit, so it only exists on
+  // macOS. Elsewhere the sample schedule is the honest default: an ICS feed
+  // works everywhere but needs a URL only the user has.
+  calendarSource: process.platform === 'darwin' ? 'system' : 'sample',
+  icsUrl: '',
   menuBarText: 'status'
 }
 
@@ -90,10 +97,16 @@ export class Store {
     try {
       if (!existsSync(this.file)) return structuredClone(DEFAULT_STATE)
       const raw = JSON.parse(readFileSync(this.file, 'utf8')) as Partial<PersistedState>
+      const settings = { ...DEFAULT_SETTINGS, ...(raw.settings ?? {}) }
+      // A state file written on a Mac — or one carried over by a sync folder —
+      // can ask for a calendar source this platform cannot serve.
+      if (process.platform !== 'darwin' && settings.calendarSource === 'system') {
+        settings.calendarSource = 'sample'
+      }
       return {
         ...structuredClone(DEFAULT_STATE),
         ...raw,
-        settings: { ...DEFAULT_SETTINGS, ...(raw.settings ?? {}) },
+        settings,
         window: { ...DEFAULT_STATE.window, ...(raw.window ?? {}) },
         status: { ...DEFAULT_STATE.status, ...(raw.status ?? {}) },
         sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-MAX_SESSIONS) : []
