@@ -124,6 +124,33 @@ export interface Settings {
 export interface WindowState {
   pinned: boolean
   expanded: boolean
+  /**
+   * Uniform zoom applied to the whole device, 1 = the design size. The window
+   * keeps its aspect ratio, so one number describes the size completely.
+   */
+  scale: number
+}
+
+/** Device artwork size at scale 1. The window adds padding so CSS can cast a
+    real shadow — the renderer needs these to size a drag, so they live here. */
+export const DEVICE_WIDTH = 520
+export const DEVICE_COLLAPSED_HEIGHT = 230
+export const DEVICE_EXPANDED_HEIGHT = 490
+export const SHADOW_PAD = 14
+
+export const WINDOW_WIDTH = DEVICE_WIDTH + SHADOW_PAD * 2
+export const COLLAPSED_HEIGHT = DEVICE_COLLAPSED_HEIGHT + SHADOW_PAD * 2
+export const EXPANDED_HEIGHT = DEVICE_EXPANDED_HEIGHT + SHADOW_PAD * 2
+
+/** Bounds for `WindowState.scale`, shared so main and renderer clamp alike. */
+export const MIN_DEVICE_SCALE = 0.7
+export const MAX_DEVICE_SCALE = 2
+/** One press of ⌘+ / ⌘−. */
+export const DEVICE_SCALE_STEP = 0.1
+
+export function clampDeviceScale(scale: number): number {
+  if (!Number.isFinite(scale)) return 1
+  return Math.min(MAX_DEVICE_SCALE, Math.max(MIN_DEVICE_SCALE, scale))
 }
 
 export interface AppSnapshot {
@@ -140,4 +167,4 @@ export interface AppSnapshot {
 export const SNAPSHOT_CHANNEL = 'gerdoo:snapshot'
 export const SOUND_CHANNEL = 'gerdoo:sound'
 
-export type SoundCue = 'complete' | 'start' | 'stop'
+export type SoundCue = 'complete' | 'start' | 'stop' | 'mode'

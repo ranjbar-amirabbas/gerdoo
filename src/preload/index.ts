@@ -25,6 +25,7 @@ const api: GerdooApi = {
     setPinned: (pinned: boolean) => ipcRenderer.invoke(IPC.windowSetPinned, pinned),
     getPinned: () => ipcRenderer.invoke(IPC.windowGetPinned),
     togglePinned: () => ipcRenderer.invoke(IPC.windowTogglePinned),
+    setScale: (scale: number) => ipcRenderer.invoke(IPC.windowSetScale, scale),
     setExpanded: (expanded: boolean) => ipcRenderer.invoke(IPC.windowSetExpanded, expanded),
     toggleExpanded: () => ipcRenderer.invoke(IPC.windowToggleExpanded),
     hide: () => ipcRenderer.invoke(IPC.windowHide),

@@ -5,7 +5,8 @@ The product is a **virtual focus device**: a small, hardware-styled window with 
 dot-matrix LED panel that shows your timer, your status, and what is coming up
 next.
 
-<!-- Focus Bar: 520 × 230 collapsed, 520 × 490 expanded. -->
+<!-- Focus Bar: 520 × 230 collapsed, 520 × 490 expanded, at scale 1. Dragging an
+     edge zooms the whole device between 0.7× and 2×; the ratio stays locked. -->
 
 ## What runs where
 
@@ -361,6 +362,8 @@ means implementing `CalendarProvider` and adding a case to `CalendarService`.
 | `Escape` | Hide the Focus Bar (ignored while pinned) |
 | `⌘E` / `Ctrl+E` | Expand / collapse the control panel |
 | `⌘P` / `Ctrl+P` | Pin / unpin |
+| `⌘+` / `⌘−`, `Ctrl+` / `Ctrl−` | Grow / shrink the device |
+| `⌘0` / `Ctrl+0` | Reset the device to its design size |
 | `⌘,` / `Ctrl+,` | Settings (from the tray menu) |
 
 The renderer reads `window.gerdoo.platform` and matches the right modifier —
