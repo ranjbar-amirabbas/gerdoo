@@ -7,6 +7,8 @@ export interface TimerEvents {
   change: []
   tick: []
   complete: [SessionRecord]
+  /** Fired when a start switches focus <-> break, so callers can cue the change. */
+  modeChange: [TimerMode]
 }
 
 /**
@@ -52,6 +54,7 @@ export class TimerService extends EventEmitter<TimerEvents> {
 
   start(options: { mode?: TimerMode; minutes?: number; title?: string } = {}): void {
     const mode = options.mode ?? 'focus'
+    const previousMode = this.state.mode
     const durationMs =
       options.minutes !== undefined ? Math.round(options.minutes * MINUTE) : this.state.durationMs
     const now = Date.now()
@@ -67,6 +70,7 @@ export class TimerService extends EventEmitter<TimerEvents> {
       title: options.title ?? this.state.title
     }
     this.startInterval()
+    if (mode !== previousMode) this.emit('modeChange', mode)
     this.emit('change')
   }
 

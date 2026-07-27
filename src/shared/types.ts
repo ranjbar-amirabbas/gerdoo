@@ -131,4 +131,4 @@ export interface AppSnapshot {
 export const SNAPSHOT_CHANNEL = 'gerdoo:snapshot'
 export const SOUND_CHANNEL = 'gerdoo:sound'
 
-export type SoundCue = 'complete' | 'start' | 'stop'
+export type SoundCue = 'complete' | 'start' | 'stop' | 'mode'
