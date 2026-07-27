@@ -105,6 +105,8 @@ export interface Settings {
   /** null = follow the system reduced-motion setting. */
   reduceMotion: boolean | null
   autoStartBreak: boolean
+  /** Start the next focus session as soon as a break ends. */
+  autoStartFocus: boolean
   launchAtLogin: boolean
   hideOnBlur: boolean
   defaultTitle: string
