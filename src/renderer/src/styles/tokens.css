@@ -33,8 +33,8 @@
   --letterspace-etched: 0.14em;
 
   /* Semantic accent — set per render from the LED colour tokens. */
-  --accent: #6fd3ff;
-  --glow: rgba(90, 200, 255, 0.5);
+  --accent: #c8823c;
+  --glow: rgba(200, 130, 60, 0.5);
 
   --focus-ring: 0 0 0 2px rgba(10, 12, 15, 0.9), 0 0 0 4px var(--accent);
   --motion-fast: 140ms;
