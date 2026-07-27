@@ -55,8 +55,8 @@ class GerdooApp {
       this.store.patch({ timer: this.timer.getState() })
       this.publish()
     })
-    // Ticks only refresh the menu bar countdown; renderers run their own clock.
-    this.timer.on('tick', () => this.tray.updateCountdown(this.timer.getState()))
+    // Ticks only refresh the menu bar title; renderers run their own clock.
+    this.timer.on('tick', () => this.tray.updateTimer(this.timer.getState()))
     this.timer.on('complete', (record) => this.onSessionComplete(record.mode))
 
     this.calendar.on('change', () => this.publish())

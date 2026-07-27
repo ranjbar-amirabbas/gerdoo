@@ -33,7 +33,7 @@ src/
     index.ts     app wiring, IPC handlers, session records, notifications
     windows.ts   the single Focus Bar window, pinning, expand, Dashboard/Settings
     timer.ts     authoritative timer (deadline-based, survives sleep)
-    tray.ts      menu bar icon, dynamic context menu, live countdown title
+    tray.ts      menu bar icon, dynamic context menu, live status/countdown title
     calendar.ts  CalendarProvider interface + the current mock source
     store.ts     atomic JSON persistence in userData
   preload/     contextBridge surface — the renderer's entire API
@@ -72,6 +72,22 @@ Colours are semantic tokens (`src/shared/status.ts`), not literals: focus is
 cyan, break amber, on call red, in meeting violet, available deep blue, paused
 neutral amber, do not disturb red-orange. The accent flows into the shell — the
 brand dot, the primary key, the dial ticks — through the `--accent` variable.
+
+### The menu bar title
+
+Next to the tray icon Gerdoo prints its current state — `On Call`, `In Meeting`,
+`Do Not Disturb`, or `Focus 24:31` while a session runs. The text comes from
+`deriveMenuBarTitle()` in `src/shared/display.ts`, which wraps
+`deriveLedContent()`, so the menu bar cannot claim a state the panel disagrees
+with. LED labels are shouted, menu bar labels are not, so they are title-cased —
+except a custom status, which keeps the user's own capitalisation. Titles are
+capped at 22 characters; the notch is shared property.
+
+Settings → System → Menu bar picks between **Status** (the default), **Timer**
+(the countdown, only while a session runs — the old behaviour) and **Icon only**.
+Only the running countdown ticks per second; every other change rides the normal
+snapshot publish. The tooltip always carries the full label, big line and
+sub-label.
 
 ### Pinning
 
