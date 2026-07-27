@@ -166,9 +166,11 @@ export function Dashboard(): React.ReactElement {
           </h2>
           {week.length === 0 ? (
             <p className="empty">
-              {snapshot.calendar.access === 'authorized'
+              {snapshot.calendar.access === 'authorized' || snapshot.calendar.access === 'sample'
                 ? 'Nothing on your calendar for the next seven days.'
-                : 'Calendar access is not granted — open Settings to allow it.'}
+                : snapshot.calendar.source === 'ics'
+                  ? 'The calendar feed could not be read — check the URL in Settings.'
+                  : 'Calendar access is not granted — open Settings to allow it.'}
             </p>
           ) : (
             week.map((day) => (

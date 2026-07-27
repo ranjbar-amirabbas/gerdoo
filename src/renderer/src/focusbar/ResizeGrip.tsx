@@ -1,5 +1,8 @@
 import { useRef } from 'react'
 import { WINDOW_WIDTH, clampDeviceScale } from '@shared/types'
+import { IS_MAC } from '@/platform'
+
+const SCALE_KEYS = IS_MAC ? '⌘+ / ⌘− / ⌘0' : 'Ctrl+ / Ctrl− / Ctrl+0'
 
 interface ResizeGripProps {
   /** The scale the device is drawn at right now. */
@@ -11,9 +14,11 @@ interface ResizeGripProps {
  *
  * The window is transparent, and macOS lets the mouse through transparent
  * pixels — so the frame's own resize edges sit in the shadow padding where
- * nothing can grab them. This handle does the resize itself instead: it reads
- * screen coordinates (unaffected by the page zoom that the resize applies) and
- * asks main for the matching scale.
+ * nothing can grab them. Windows has no edges to begin with: the Focus Bar
+ * turns off `thickFrame` there, because the 1 px border it draws cuts across
+ * the device's rounded corners. Either way this handle does the resize itself:
+ * it reads screen coordinates (unaffected by the page zoom that the resize
+ * applies) and asks main for the matching scale.
  */
 export function ResizeGrip({ scale }: ResizeGripProps): React.ReactElement {
   const scaleRef = useRef(scale)
@@ -55,7 +60,7 @@ export function ResizeGrip({ scale }: ResizeGripProps): React.ReactElement {
       className="device__resize no-drag"
       role="separator"
       aria-label="Resize the Focus Bar"
-      title="Drag to resize · ⌘+ / ⌘− / ⌘0"
+      title={`Drag to resize · ${SCALE_KEYS}`}
       onPointerDown={onPointerDown}
       onDoubleClick={() => void window.gerdoo.window.setScale(1)}
     >

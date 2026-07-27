@@ -57,14 +57,26 @@ export class TrayController {
   init(snapshot: AppSnapshot): void {
     // Packaged: inside the asar. Dev: two levels up from out/main.
     const base = app.isPackaged ? app.getAppPath() : join(__dirname, '..', '..')
-    const iconPath = join(base, 'resources', 'trayTemplate.png')
+    // Only macOS has template images. Elsewhere the icon keeps its colours, and
+    // Windows wants an ICO so it can pick the size that fits the current DPI.
+    const iconFile =
+      process.platform === 'darwin'
+        ? 'trayTemplate.png'
+        : process.platform === 'win32'
+          ? 'tray.ico'
+          : 'tray.png'
+    const iconPath = join(base, 'resources', iconFile)
     const image = nativeImage.createFromPath(iconPath)
     if (image.isEmpty()) console.error(`[gerdoo] tray icon missing at ${iconPath}`)
-    image.setTemplateImage(true)
+    if (process.platform === 'darwin') image.setTemplateImage(true)
     this.tray = new Tray(image)
     this.tray.setToolTip('Gerdoo')
     this.tray.on('click', (_event, bounds) => this.actions.toggleFocusBar(bounds))
-    this.tray.on('right-click', () => this.tray?.popUpContextMenu())
+    // Windows pops the context menu itself on right-click once one is attached;
+    // doing it here as well would open the menu twice.
+    if (process.platform === 'darwin') {
+      this.tray.on('right-click', () => this.tray?.popUpContextMenu())
+    }
     this.update(snapshot)
   }
 
@@ -114,9 +126,17 @@ export class TrayController {
       },
       { type: 'separator' },
       { label: 'Open Dashboard', click: () => this.actions.openDashboard() },
-      { label: 'Settings…', accelerator: 'Command+,', click: () => this.actions.openSettings() },
+      {
+        label: 'Settings…',
+        accelerator: 'CommandOrControl+,',
+        click: () => this.actions.openSettings()
+      },
       { type: 'separator' },
-      { label: 'Quit Gerdoo', accelerator: 'Command+Q', click: () => this.actions.quit() }
+      {
+        label: 'Quit Gerdoo',
+        accelerator: 'CommandOrControl+Q',
+        click: () => this.actions.quit()
+      }
     ])
 
     this.tray.setContextMenu(menu)
@@ -135,12 +155,21 @@ export class TrayController {
     if (!this.tray || !this.snapshot) return
     const now = Date.now()
     const title = deriveMenuBarTitle(this.snapshot, now)
-    // The leading space keeps the text off the icon.
-    this.tray.setTitle(title ? ` ${title}` : '')
+
+    if (process.platform === 'darwin') {
+      // The leading space keeps the text off the icon.
+      this.tray.setTitle(title ? ` ${title}` : '')
+    }
 
     const content = deriveLedContent(this.snapshot, now)
     const line = [content.label, content.big].filter(Boolean).join(' ')
-    this.tray.setToolTip(content.sub ? `${line} — ${content.sub}` : line)
+    const tooltip = content.sub ? `${line} — ${content.sub}` : line
+    // Only macOS draws text beside a tray icon. Everywhere else the tooltip is
+    // the whole of it, so the menu bar title leads — it is the line the user
+    // chose in Settings — with the panel's own reading behind it.
+    this.tray.setToolTip(
+      process.platform === 'darwin' || !title ? tooltip : `${title} — ${tooltip}`
+    )
   }
 
   dispose(): void {

@@ -16,6 +16,46 @@ import type { Store } from './store'
 
 const PRELOAD = join(__dirname, '../preload/index.js')
 
+const IS_MAC = process.platform === 'darwin'
+const IS_WINDOWS = process.platform === 'win32'
+
+/** Chrome of the Dashboard and Settings windows: a frameless bar the app draws. */
+const APP_TITLEBAR_HEIGHT = 46
+
+/**
+ * Both secondary windows hide the native title bar and draw their own, so the
+ * window controls have to be placed by hand — and the two platforms put them on
+ * opposite sides. macOS insets the traffic lights; Windows overlays its own
+ * buttons on the right, which needs `titleBarOverlay` (plain `hidden` there
+ * leaves a window with no way to close it). Anywhere else, keep the frame.
+ */
+function titleBarOptions(): Electron.BrowserWindowConstructorOptions {
+  if (IS_MAC) {
+    return { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 16, y: 18 } }
+  }
+  if (IS_WINDOWS) {
+    return {
+      titleBarStyle: 'hidden',
+      titleBarOverlay: {
+        color: '#0b0d10',
+        symbolColor: '#9aa2ad',
+        height: APP_TITLEBAR_HEIGHT
+      }
+    }
+  }
+  return {}
+}
+
+/**
+ * Windows and Linux take a window's icon from the window itself, not the
+ * bundle. A packaged build gets it from the executable; a dev run has no
+ * executable of its own, so without this it shows the stock Electron logo.
+ */
+function windowIcon(): string | undefined {
+  if (IS_MAC || app.isPackaged) return undefined
+  return join(__dirname, '..', '..', 'build', IS_WINDOWS ? 'icon.ico' : 'icon.png')
+}
+
 function rendererUrl(page: string): { url?: string; file?: string } {
   const devUrl = process.env['ELECTRON_RENDERER_URL']
   if (!app.isPackaged && devUrl) return { url: `${devUrl}/${page}.html` }
@@ -78,6 +118,10 @@ export class WindowManager {
       skipTaskbar: true,
       acceptFirstMouse: true,
       roundedCorners: false,
+      // Windows draws a 1 px chrome border around a frameless window, which
+      // cuts a bright line across the device's own rounded corners.
+      thickFrame: false,
+      icon: windowIcon(),
       title: 'Gerdoo Focus Bar',
       webPreferences: {
         preload: PRELOAD,
@@ -188,11 +232,22 @@ export class WindowManager {
       y = saved.y
     } else if (trayBounds) {
       x = Math.round(trayBounds.x + trayBounds.width / 2 - bounds.width / 2)
-      y = Math.round(trayBounds.y + trayBounds.height + 2)
+      // The bar hangs off the tray icon — below a menu bar at the top of the
+      // screen, above a taskbar at the bottom, which is where Windows usually
+      // puts it. Either way it never covers the icon it belongs to.
+      const display = screen.getDisplayMatching(trayBounds) ?? screen.getPrimaryDisplay()
+      const trayMiddle = trayBounds.y + trayBounds.height / 2
+      const trayIsAtTop = trayMiddle < display.bounds.y + display.bounds.height / 2
+      y = trayIsAtTop
+        ? Math.round(trayBounds.y + trayBounds.height + 2)
+        : Math.round(trayBounds.y - bounds.height - 2)
     } else {
+      // No tray bounds: the corner the tray icon would have been in.
       const area = screen.getPrimaryDisplay().workArea
       x = Math.round(area.x + area.width - bounds.width - 24)
-      y = Math.round(area.y + 16)
+      y = IS_MAC
+        ? Math.round(area.y + 16)
+        : Math.round(area.y + area.height - bounds.height - 16)
     }
 
     const clamped = this.clampToVisibleDisplay({ ...bounds, x, y })
@@ -261,7 +316,8 @@ export class WindowManager {
       const target = this.clampToVisibleDisplay({ ...bounds, height })
       // The ratio has to move before the bounds, or AppKit fights the new height.
       this.applyAspectRatio(win, expanded)
-      // macOS animates the resize, which is what sells the "panel sliding open".
+      // macOS animates the resize, which is what sells the "panel sliding
+      // open". Windows ignores the flag and snaps, which is its own convention.
       win.setBounds(target, true)
     }
     return expanded
@@ -332,8 +388,8 @@ export class WindowManager {
       show: false,
       title: 'Gerdoo Dashboard',
       backgroundColor: '#0b0d10',
-      titleBarStyle: 'hiddenInset',
-      trafficLightPosition: { x: 16, y: 18 },
+      icon: windowIcon(),
+      ...titleBarOptions(),
       webPreferences: { preload: PRELOAD, sandbox: true, contextIsolation: true }
     })
     win.once('ready-to-show', () => {
@@ -362,8 +418,8 @@ export class WindowManager {
       show: false,
       title: 'Gerdoo Settings',
       backgroundColor: '#0b0d10',
-      titleBarStyle: 'hiddenInset',
-      trafficLightPosition: { x: 16, y: 18 },
+      icon: windowIcon(),
+      ...titleBarOptions(),
       webPreferences: { preload: PRELOAD, sandbox: true, contextIsolation: true }
     })
     win.once('ready-to-show', () => {

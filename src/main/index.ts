@@ -2,7 +2,12 @@ import { BrowserWindow, Notification, app, ipcMain, powerMonitor, shell } from '
 import { IPC, type SetStatusRequest, type StartTimerRequest } from '@shared/ipc'
 import { normalizeAccent } from '@shared/palette'
 import type { AppSnapshot, Settings, StatusId, TimerMode } from '@shared/types'
-import { CalendarService, EventKitCalendarProvider, MockCalendarProvider } from './calendar'
+import {
+  CalendarService,
+  EventKitCalendarProvider,
+  IcsCalendarProvider,
+  MockCalendarProvider
+} from './calendar'
 import { Store } from './store'
 import { TimerService } from './timer'
 import { TrayController, seedMenuBarPosition } from './tray'
@@ -22,11 +27,12 @@ class GerdooApp {
   private readonly calendar = new CalendarService(
     new EventKitCalendarProvider(),
     new MockCalendarProvider(),
+    this.createIcsProvider(),
     this.store.get().settings.calendarSource,
     {
       cache: this.store.get().calendarCache,
-      onEvents: (access, events) =>
-        this.store.patch({ calendarCache: { access, events, fetchedAt: Date.now() } })
+      onEvents: (access, events, source) =>
+        this.store.patch({ calendarCache: { access, events, source, fetchedAt: Date.now() } })
     }
   )
   private readonly timer: TimerService
@@ -57,6 +63,12 @@ class GerdooApp {
       openSettings: () => this.windows.openSettings(),
       quit: () => app.quit()
     })
+  }
+
+  private createIcsProvider(): IcsCalendarProvider {
+    const provider = new IcsCalendarProvider()
+    provider.setUrl(this.store.get().settings.icsUrl)
+    return provider
   }
 
   // ------------------------------------------------------------------ startup
@@ -239,6 +251,7 @@ class GerdooApp {
       const minutes = settings.presets[settings.selectedPresetIndex] ?? 25
       this.timer.setDurationMinutes(minutes)
     }
+    if (patch.icsUrl !== undefined) this.calendar.setIcsUrl(settings.icsUrl)
     if (patch.calendarSource !== undefined) this.calendar.setSource(settings.calendarSource)
     this.publish()
   }
@@ -246,10 +259,15 @@ class GerdooApp {
   private applyLoginItem(settings: Settings): void {
     if (!app.isPackaged) return
     try {
-      // Only write when it actually differs: the call fails outright for an
-      // unsigned build, and there is no reason to make it on every launch.
+      // Only write when it actually differs: on macOS the call fails outright
+      // for an unsigned build, and there is no reason to make it every launch.
       if (app.getLoginItemSettings().openAtLogin === settings.launchAtLogin) return
-      app.setLoginItemSettings({ openAtLogin: settings.launchAtLogin, openAsHidden: true })
+      app.setLoginItemSettings({
+        openAtLogin: settings.launchAtLogin,
+        // macOS only. Windows starts the app normally; it has no Dock icon to
+        // hide, and the Focus Bar showing at login is the point of the setting.
+        openAsHidden: true
+      })
     } catch (error) {
       console.error('[gerdoo] could not update the login item:', error)
     }
@@ -314,7 +332,8 @@ class GerdooApp {
       this.publish()
     })
     handle(IPC.calendarRefresh, async () => {
-      await this.calendar.refresh()
+      // Asked for by hand, so it bypasses the feed cache.
+      await this.calendar.refresh({ force: true })
       this.publish()
     })
     handle(IPC.calendarRequestAccess, async () => {
@@ -322,9 +341,13 @@ class GerdooApp {
       this.publish()
     })
     handle(IPC.calendarOpenPrivacySettings, async () => {
-      await shell.openExternal(
-        'x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars'
-      )
+      const url =
+        process.platform === 'darwin'
+          ? 'x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars'
+          : process.platform === 'win32'
+            ? 'ms-settings:privacy-calendar'
+            : null
+      if (url) await shell.openExternal(url)
     })
   }
 

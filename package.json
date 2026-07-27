@@ -1,7 +1,7 @@
 {
   "name": "gerdoo",
   "version": "1.3.0",
-  "description": "Gerdoo — a virtual focus device for the macOS menu bar",
+  "description": "Gerdoo — a virtual focus device for the macOS menu bar and the Windows system tray",
   "main": "./out/main/index.js",
   "author": "Gerdoo",
   "license": "MIT",
@@ -11,9 +11,12 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "node scripts/test.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "build:native": "node scripts/build-native.mjs",
-    "dist": "npm run build:native && npm run build && electron-builder --mac --arm64"
+    "dist": "npm run build:native && npm run build && electron-builder",
+    "dist:mac": "npm run build:native && npm run build && electron-builder --mac --arm64",
+    "dist:win": "npm run build && electron-builder --win"
   },
   "dependencies": {
     "lucide-react": "^1.27.0",

@@ -53,8 +53,11 @@ export interface CalendarEvent {
   location?: string
 }
 
-/** Where events come from: the real macOS Calendar, or the built-in sample set. */
-export type CalendarSource = 'system' | 'sample'
+/**
+ * Where events come from: the real macOS Calendar, a subscribed iCalendar feed,
+ * or the built-in sample set.
+ */
+export type CalendarSource = 'system' | 'ics' | 'sample'
 
 export type CalendarAccess =
   | 'authorized'
@@ -63,6 +66,8 @@ export type CalendarAccess =
   | 'notDetermined'
   /** The helper binary is missing, or this is not macOS. */
   | 'unavailable'
+  /** An ICS feed is selected but no URL has been given yet. */
+  | 'notConfigured'
   | 'error'
   /** Not a permission state — the sample source needs none. */
   | 'sample'
@@ -75,6 +80,8 @@ export interface CalendarState {
   events: CalendarEvent[]
   access: CalendarAccess
   source: CalendarSource
+  /** Why the last read failed, when there is something worth saying. */
+  detail: string | null
 }
 
 export interface SessionRecord {
@@ -111,6 +118,8 @@ export interface Settings {
   hideOnBlur: boolean
   defaultTitle: string
   calendarSource: CalendarSource
+  /** The feed read when `calendarSource` is `ics`. Empty until one is given. */
+  icsUrl: string
   menuBarText: MenuBarText
 }
 

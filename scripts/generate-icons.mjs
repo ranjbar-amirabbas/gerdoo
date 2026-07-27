@@ -1,8 +1,9 @@
 /**
- * Generates the tray template images and the app icon.
+ * Generates the tray images and the app icons, for every platform.
  *
- * Everything is drawn as raw pixels and encoded to PNG here so the repo carries
- * no binary art that cannot be regenerated: `npm run icons`.
+ * Everything is drawn as raw pixels and encoded to PNG (or ICO, which is a
+ * container of PNGs) here so the repo carries no binary art that cannot be
+ * regenerated: `npm run icons`.
  */
 import { deflateSync } from 'node:zlib'
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -48,6 +49,37 @@ function encodePng(image) {
     chunk('IDAT', deflateSync(raw, { level: 9 })),
     chunk('IEND', Buffer.alloc(0))
   ])
+}
+
+/**
+ * ICO container. Windows picks the entry that matches the current DPI, so an
+ * icon file is a set of independently drawn sizes rather than one image scaled
+ * down. Each entry holds a whole PNG, which Windows has understood since Vista.
+ *
+ * @param {Array<{size:number,png:Buffer}>} entries
+ */
+function encodeIco(entries) {
+  const header = Buffer.alloc(6)
+  header.writeUInt16LE(0, 0) // reserved
+  header.writeUInt16LE(1, 2) // type: icon
+  header.writeUInt16LE(entries.length, 4)
+
+  const directory = Buffer.alloc(entries.length * 16)
+  let offset = header.length + directory.length
+  entries.forEach(({ size, png }, index) => {
+    const at = index * 16
+    directory[at] = size >= 256 ? 0 : size // 0 means 256
+    directory[at + 1] = size >= 256 ? 0 : size
+    directory[at + 2] = 0 // palette size: none, it is a true-colour image
+    directory[at + 3] = 0 // reserved
+    directory.writeUInt16LE(1, at + 4) // colour planes
+    directory.writeUInt16LE(32, at + 6) // bits per pixel
+    directory.writeUInt32LE(png.length, at + 8)
+    directory.writeUInt32LE(offset, at + 12)
+    offset += png.length
+  })
+
+  return Buffer.concat([header, directory, ...entries.map((entry) => entry.png)])
 }
 
 function createCanvas(size) {
@@ -280,6 +312,52 @@ function drawMascotGlyph(canvas, color) {
   p.fillEllipse(100, 110, 11, 7, color)
 }
 
+/**
+ * The mascot's head in full colour, cropped to the ears and head.
+ *
+ * Windows has no template images: the tray icon keeps whatever colours it is
+ * given, on a taskbar that may be light or dark. The mascot's own dark outline
+ * is what makes it readable either way, so it is thickened here — at 16 px the
+ * 2.5-unit stroke of `drawMascot` lands well under a pixel and the golden fur
+ * ends up floating on a light taskbar with no edge at all.
+ *
+ * The body, collar and tag are dropped: at tray sizes they collapse into a
+ * coloured smudge under the chin and cost the head the pixels it needs.
+ */
+function drawMascotHead(canvas) {
+  // Same crop as the template glyph, so both tray icons frame the dog alike.
+  const box = { x: 7, y: 10, w: 186, h: 160 }
+  const pad = canvas.size * 0.03
+  const scale = Math.min((canvas.size - pad * 2) / box.w, (canvas.size - pad * 2) / box.h)
+  const p = createPainter(
+    canvas,
+    scale,
+    (canvas.size - box.w * scale) / 2 - box.x * scale,
+    (canvas.size - box.h * scale) / 2 - box.y * scale
+  )
+  const mirror = (circles) => circles.map(([x, y, r]) => [200 - x, y, r])
+  const STROKE = 5
+
+  p.fillCluster(EAR, FUR_EAR, OUTLINE, STROKE)
+  p.fillCluster(mirror(EAR), FUR_EAR, OUTLINE, STROKE)
+  p.fillCluster(HEAD, FUR_HEAD, OUTLINE, STROKE)
+
+  p.fillEllipse(100, 122, 39, 31, MUZZLE)
+  p.fillEllipse(100, 134, 25, 14, OUTLINE)
+  p.fillEllipse(100, 133, 23, 12, INK)
+  p.fillEllipse(100, 142, 14, 9, TONGUE)
+
+  p.fillEllipse(100, 106, 15, 12, INK)
+  p.fillEllipse(94, 102, 4, 3, WHITE)
+
+  // Both eyes are drawn open: the winking arc is a hairline that disappears
+  // below about 32 px, leaving the dog with one eye.
+  p.fillEllipse(74, 88, 11, 13, INK)
+  p.fillCircle(70, 83, 4, WHITE)
+  p.fillEllipse(126, 88, 11, 13, INK)
+  p.fillCircle(122, 83, 4, WHITE)
+}
+
 /** Box-filters a supersampled buffer down to `size`, alpha-weighted so the
     edges of the rounded background do not darken against transparency. */
 function downsample(source, size, factor) {
@@ -308,14 +386,29 @@ function downsample(source, size, factor) {
   return out
 }
 
-function writeIcon(relPath, size, draw, { supersample = 1 } = {}) {
+/** Renders `draw` at `size`, supersampled, and returns the PNG bytes. */
+function renderPng(size, draw, supersample) {
   const drawn = createCanvas(size * supersample)
   draw(drawn)
   const canvas = supersample > 1 ? downsample(drawn, size, supersample) : drawn
+  return encodePng({ width: size, height: size, data: canvas.data })
+}
+
+function write(relPath, bytes, note) {
   const file = join(root, relPath)
   mkdirSync(dirname(file), { recursive: true })
-  writeFileSync(file, encodePng({ width: size, height: size, data: canvas.data }))
-  console.log(`wrote ${relPath} (${size}x${size})`)
+  writeFileSync(file, bytes)
+  console.log(`wrote ${relPath} (${note})`)
+}
+
+function writeIcon(relPath, size, draw, { supersample = 1 } = {}) {
+  write(relPath, renderPng(size, draw, supersample), `${size}x${size}`)
+}
+
+/** Every size is drawn from scratch, not scaled: small icons need fatter strokes. */
+function writeIco(relPath, sizes, draw, { supersample = 1 } = {}) {
+  const entries = sizes.map((size) => ({ size, png: renderPng(size, draw, supersample) }))
+  write(relPath, encodeIco(entries), `${sizes.join(', ')}`)
 }
 
 const BLACK = [0, 0, 0, 255]
@@ -341,18 +434,24 @@ writeIcon('resources/trayTemplate@2x.png', 32, (c) => drawMascotGlyph(c, BLACK),
   supersample: 8
 })
 
-// App icon: the mascot on the device shell, drawn at 3x and filtered down.
-writeIcon(
-  'build/icon.png',
-  1024,
-  (canvas) => {
-    fillBackdrop(canvas, SHELL, 3.4)
-    // Fit the 200 x 236 mascot box into the middle of the icon, sitting a
-    // little low so the head lands on the optical centre.
-    const scale = (canvas.size * 0.8) / 236
-    const offsetX = (canvas.size - 200 * scale) / 2
-    const offsetY = (canvas.size - 236 * scale) / 2 + canvas.size * 0.02
-    drawMascot(createPainter(canvas, scale, offsetX, offsetY))
-  },
-  { supersample: 3 }
-)
+// Windows and Linux tray: no template images, so the dog keeps his colours and
+// relies on his outline to survive a light or a dark taskbar.
+writeIco('resources/tray.ico', [16, 20, 24, 32, 40, 48, 64], drawMascotHead, { supersample: 8 })
+writeIcon('resources/tray.png', 32, drawMascotHead, { supersample: 8 })
+writeIcon('resources/tray@2x.png', 64, drawMascotHead, { supersample: 8 })
+
+/** The mascot on the device shell — the app icon, at any size. */
+function drawAppIcon(canvas) {
+  fillBackdrop(canvas, SHELL, 3.4)
+  // Fit the 200 x 236 mascot box into the middle of the icon, sitting a
+  // little low so the head lands on the optical centre.
+  const scale = (canvas.size * 0.8) / 236
+  const offsetX = (canvas.size - 200 * scale) / 2
+  const offsetY = (canvas.size - 236 * scale) / 2 + canvas.size * 0.02
+  drawMascot(createPainter(canvas, scale, offsetX, offsetY))
+}
+
+// App icon: drawn at 3x and filtered down. macOS and Linux take the PNG;
+// Windows needs a real ICO for the executable, the installer and the taskbar.
+writeIcon('build/icon.png', 1024, drawAppIcon, { supersample: 3 })
+writeIco('build/icon.ico', [16, 24, 32, 48, 64, 128, 256], drawAppIcon, { supersample: 4 })

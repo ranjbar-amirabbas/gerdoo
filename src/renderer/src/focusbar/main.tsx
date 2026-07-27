@@ -3,7 +3,10 @@ import { createRoot } from 'react-dom/client'
 import '@/styles/tokens.css'
 import '@/styles/base.css'
 import '@/styles/device.css'
+import { markPlatform } from '@/platform'
 import { FocusBar } from './FocusBar'
+
+markPlatform()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

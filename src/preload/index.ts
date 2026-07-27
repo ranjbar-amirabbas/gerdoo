@@ -8,6 +8,7 @@ import { SNAPSHOT_CHANNEL, SOUND_CHANNEL, type AppSnapshot, type Settings } from
  * that the main process validates.
  */
 const api: GerdooApi = {
+  platform: process.platform,
   getSnapshot: () => ipcRenderer.invoke(IPC.snapshotGet),
   onSnapshot: (listener) => {
     const handler = (_event: Electron.IpcRendererEvent, snapshot: AppSnapshot): void =>
