@@ -32,8 +32,8 @@ export class MockCalendarProvider implements CalendarProvider {
   ]
 
   async listEvents(now: number): Promise<ProviderResult> {
-    // Today plus tomorrow, so "next up" still has something to show in the evening.
-    const events = [0, 1].flatMap((dayOffset) =>
+    // Same span as the system source, so switching between them feels alike.
+    const events = Array.from({ length: CALENDAR_WINDOW_DAYS }, (_, i) => i).flatMap((dayOffset) =>
       this.templates.map((template) => {
         const day = new Date(now)
         day.setDate(day.getDate() + dayOffset)
@@ -78,6 +78,9 @@ interface HelperOutput {
 const HELPER_TIMEOUT_MS = 15_000
 const PROMPT_TIMEOUT_MS = 130_000
 
+/** How far ahead the helper reads, from the start of today. */
+export const CALENDAR_WINDOW_DAYS = 7
+
 /**
  * Real macOS Calendar data, read through the bundled EventKit helper.
  *
@@ -89,7 +92,7 @@ const PROMPT_TIMEOUT_MS = 130_000
 export class EventKitCalendarProvider implements CalendarProvider {
   private readonly binary: string
 
-  constructor(private readonly days = 2) {
+  constructor(private readonly days = CALENDAR_WINDOW_DAYS) {
     const base = app.isPackaged ? process.resourcesPath : join(__dirname, '..', '..', 'resources')
     this.binary = join(base, 'stitch-calendar')
   }
@@ -185,6 +188,8 @@ export class CalendarService extends EventEmitter<CalendarEvents> {
   private timer: NodeJS.Timeout | null = null
   private refreshing = false
   private readonly onEvents?: (access: CalendarAccess, events: CalendarEvent[]) => void
+  /** Most recent events from a successful system read, cache included. */
+  private lastAuthorized: CalendarEvent[] | null = null
 
   constructor(
     private readonly system: EventKitCalendarProvider,
@@ -200,6 +205,7 @@ export class CalendarService extends EventEmitter<CalendarEvents> {
     this.onEvents = options.onEvents
     this.state = { ...this.state, source }
     if (options.cache) {
+      if (options.cache.access === 'authorized') this.lastAuthorized = options.cache.events
       this.state = { ...this.state, access: options.cache.access }
       this.applyEvents(options.cache.events, options.cache.access, Date.now(), false)
     }
@@ -231,11 +237,17 @@ export class CalendarService extends EventEmitter<CalendarEvents> {
       const provider = useSystem ? this.system : this.sample
       let result = await provider.listEvents(now, options)
 
-      // System access unavailable or refused: fall back so the panel still says
-      // something sensible, while `access` keeps the real reason for the UI.
-      if (useSystem && result.access !== 'authorized' && result.access !== 'error') {
-        const fallback = await this.sample.listEvents(now)
-        result = { access: result.access, events: fallback.events }
+      // System read failed. Prefer the last real events we saw — stale truth
+      // beats invented meetings — and only fall back to the sample schedule
+      // when there has never been a successful read. `access` keeps the real
+      // reason either way, so the UI can still explain itself.
+      if (useSystem && result.access !== 'authorized') {
+        if (this.lastAuthorized) {
+          result = { access: result.access, events: this.lastAuthorized }
+        } else if (result.access !== 'error') {
+          const fallback = await this.sample.listEvents(now)
+          result = { access: result.access, events: fallback.events }
+        }
       }
 
       this.applyEvents(result.events, result.access, now, result.access === 'authorized')
@@ -262,7 +274,10 @@ export class CalendarService extends EventEmitter<CalendarEvents> {
       access !== this.state.access
 
     this.state = { current, next, events, access, source: this.state.source }
-    if (persist) this.onEvents?.(access, events)
+    if (persist) {
+      this.lastAuthorized = events
+      this.onEvents?.(access, events)
+    }
     if (changed) this.emit('change')
   }
 

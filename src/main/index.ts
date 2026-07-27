@@ -11,7 +11,7 @@ class StitchApp {
   private readonly store = new Store()
   private readonly windows = new WindowManager(this.store)
   private readonly calendar = new CalendarService(
-    new EventKitCalendarProvider(2),
+    new EventKitCalendarProvider(),
     new MockCalendarProvider(),
     this.store.get().settings.calendarSource,
     {
