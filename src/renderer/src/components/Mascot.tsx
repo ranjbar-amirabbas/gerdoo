@@ -45,39 +45,39 @@ export function Mascot(): React.ReactElement {
 
       <g className="mascot__dancer">
         {/* chest */}
-        <use href="#mascot-body" fill="#efd0a2" stroke="#6b4326" strokeWidth="5" />
-        <use href="#mascot-body" fill="#efd0a2" />
+        <use href="#mascot-body" fill="#cf9450" stroke="#4f2f14" strokeWidth="5" />
+        <use href="#mascot-body" fill="#cf9450" />
 
         {/* ears — mirrored, swinging out of phase with the body sway */}
         <g className="mascot__ear mascot__ear--left">
-          <use href="#mascot-ear" fill="#e9c491" stroke="#6b4326" strokeWidth="5" />
-          <use href="#mascot-ear" fill="#e9c491" />
+          <use href="#mascot-ear" fill="#bf8442" stroke="#4f2f14" strokeWidth="5" />
+          <use href="#mascot-ear" fill="#bf8442" />
         </g>
         {/* The mirror lives on a wrapper: a CSS animation on this group would
             replace the `transform` attribute and flatten the flip. */}
         <g transform="translate(200 0) scale(-1 1)">
           <g className="mascot__ear mascot__ear--right">
-            <use href="#mascot-ear" fill="#e9c491" stroke="#6b4326" strokeWidth="5" />
-            <use href="#mascot-ear" fill="#e9c491" />
+            <use href="#mascot-ear" fill="#bf8442" stroke="#4f2f14" strokeWidth="5" />
+            <use href="#mascot-ear" fill="#bf8442" />
           </g>
         </g>
 
         <g className="mascot__head">
-          <use href="#mascot-head" fill="#f3d6a8" stroke="#6b4326" strokeWidth="5" />
-          <use href="#mascot-head" fill="#f3d6a8" />
+          <use href="#mascot-head" fill="#d9a15c" stroke="#4f2f14" strokeWidth="5" />
+          <use href="#mascot-head" fill="#d9a15c" />
 
           {/* muzzle */}
-          <ellipse cx="100" cy="122" rx="39" ry="31" fill="#fbead0" />
+          <ellipse cx="100" cy="122" rx="39" ry="31" fill="#f0c78c" />
           <ellipse cx="100" cy="106" rx="15" ry="12" fill="#2b2320" />
           <ellipse cx="94" cy="102" rx="4" ry="3" fill="#ffffff" opacity="0.75" />
-          <path d="M100 118v9" stroke="#6b4326" strokeWidth="3" strokeLinecap="round" />
+          <path d="M100 118v9" stroke="#4f2f14" strokeWidth="3" strokeLinecap="round" />
 
           {/* open smile with a tongue */}
           <path d="M76 127c6 24 42 24 48 0-6 21-42 21-48 0z" fill="#2b2320" />
           <path
             d="M78 130c7 20 37 20 44 0-5 22-39 22-44 0z"
             fill="#2b2320"
-            stroke="#6b4326"
+            stroke="#4f2f14"
             strokeWidth="3"
             strokeLinejoin="round"
           />
@@ -100,12 +100,12 @@ export function Mascot(): React.ReactElement {
           <path
             d="M60 166c26 12 54 12 80 0v15c-26 12-54 12-80 0v-15z"
             fill="#d9342b"
-            stroke="#6b4326"
+            stroke="#4f2f14"
             strokeWidth="4"
             strokeLinejoin="round"
           />
           <path d="M100 182v9" stroke="#d9a441" strokeWidth="5" strokeLinecap="round" />
-          <g fill="#f1eee2" stroke="#6b4326" strokeWidth="4">
+          <g fill="#f1eee2" stroke="#4f2f14" strokeWidth="4">
             <rect x="86" y="192" width="28" height="14" rx="6" />
             <circle cx="88" cy="194" r="7" />
             <circle cx="88" cy="204" r="7" />
