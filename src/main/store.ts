@@ -63,7 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
 const DEFAULT_STATE: PersistedState = {
   version: 1,
   settings: DEFAULT_SETTINGS,
-  window: { pinned: false, expanded: false },
+  window: { pinned: false, expanded: false, scale: 1 },
   status: { id: 'available', customLabel: '', until: null },
   timer: null,
   focusBarPosition: null,

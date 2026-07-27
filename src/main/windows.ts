@@ -1,18 +1,18 @@
 import { BrowserWindow, app, screen, shell } from 'electron'
 import { join } from 'node:path'
 import type { AppSnapshot } from '@shared/types'
-import { SNAPSHOT_CHANNEL, SOUND_CHANNEL, type SoundCue } from '@shared/types'
+import {
+  COLLAPSED_HEIGHT,
+  EXPANDED_HEIGHT,
+  MAX_DEVICE_SCALE,
+  MIN_DEVICE_SCALE,
+  SNAPSHOT_CHANNEL,
+  SOUND_CHANNEL,
+  WINDOW_WIDTH,
+  clampDeviceScale,
+  type SoundCue
+} from '@shared/types'
 import type { Store } from './store'
-
-/** Device artwork size. The window adds padding so CSS can cast a real shadow. */
-export const DEVICE_WIDTH = 520
-export const DEVICE_COLLAPSED_HEIGHT = 230
-export const DEVICE_EXPANDED_HEIGHT = 490
-export const SHADOW_PAD = 14
-
-export const WINDOW_WIDTH = DEVICE_WIDTH + SHADOW_PAD * 2
-export const COLLAPSED_HEIGHT = DEVICE_COLLAPSED_HEIGHT + SHADOW_PAD * 2
-export const EXPANDED_HEIGHT = DEVICE_EXPANDED_HEIGHT + SHADOW_PAD * 2
 
 const PRELOAD = join(__dirname, '../preload/index.js')
 
@@ -57,19 +57,20 @@ export class WindowManager {
     if (this.focusBar && !this.focusBar.isDestroyed()) return this.focusBar
 
     const { window: windowState } = this.store.get()
-    const height = windowState.expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT
+    const scale = this.getScale()
+    const size = this.scaledSize(windowState.expanded, scale)
 
     const win = new BrowserWindow({
-      width: WINDOW_WIDTH,
-      height,
-      minWidth: WINDOW_WIDTH,
-      maxWidth: WINDOW_WIDTH,
+      width: size.width,
+      height: size.height,
+      minWidth: Math.round(WINDOW_WIDTH * MIN_DEVICE_SCALE),
+      maxWidth: Math.round(WINDOW_WIDTH * MAX_DEVICE_SCALE),
       show: false,
       frame: false,
       transparent: true,
       backgroundColor: '#00000000',
       hasShadow: false, // the device casts its own shadow in CSS
-      resizable: false,
+      resizable: true,
       movable: true,
       minimizable: false,
       maximizable: false,
@@ -89,11 +90,27 @@ export class WindowManager {
     })
 
     win.setWindowButtonVisibility?.(false)
+    this.applyAspectRatio(win, windowState.expanded)
+
+    // The device is one piece of artwork: everything in it is laid out in fixed
+    // pixels, so resizing means zooming the page, never reflowing it.
+    win.webContents.on('did-finish-load', () => win.webContents.setZoomFactor(this.getScale()))
 
     win.once('ready-to-show', () => {
       this.applyPinState(this.store.get().window.pinned)
       this.positionFocusBar(win)
       win.show()
+    })
+
+    // Live while the user drags an edge; `resized` then snaps away the rounding.
+    win.on('resize', () => {
+      if (win.isDestroyed()) return
+      win.webContents.setZoomFactor(clampDeviceScale(win.getBounds().width / WINDOW_WIDTH))
+    })
+
+    win.on('resized', () => {
+      if (win.isDestroyed()) return
+      this.applyScale(clampDeviceScale(win.getBounds().width / WINDOW_WIDTH))
     })
 
     win.on('blur', () => {
@@ -240,8 +257,10 @@ export class WindowManager {
     const win = this.focusBar
     if (win && !win.isDestroyed()) {
       const bounds = win.getBounds()
-      const height = expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT
+      const { height } = this.scaledSize(expanded, this.getScale())
       const target = this.clampToVisibleDisplay({ ...bounds, height })
+      // The ratio has to move before the bounds, or AppKit fights the new height.
+      this.applyAspectRatio(win, expanded)
       // macOS animates the resize, which is what sells the "panel sliding open".
       win.setBounds(target, true)
     }
@@ -250,6 +269,50 @@ export class WindowManager {
 
   toggleExpanded(): boolean {
     return this.setExpanded(!this.getExpanded())
+  }
+
+  // ------------------------------------------------------------------- resize
+
+  getScale(): number {
+    return clampDeviceScale(this.store.get().window.scale)
+  }
+
+  /** Resizes the device around its current position and remembers the size. */
+  setScale(scale: number): number {
+    const next = clampDeviceScale(scale)
+    this.applyScale(next)
+    return next
+  }
+
+  private applyScale(scale: number): void {
+    const previous = this.getScale()
+    this.store.patch({ window: { ...this.store.get().window, scale } })
+
+    const win = this.focusBar
+    if (win && !win.isDestroyed()) {
+      const expanded = this.store.get().window.expanded
+      const size = this.scaledSize(expanded, scale)
+      const bounds = win.getBounds()
+      if (bounds.width !== size.width || bounds.height !== size.height) {
+        win.setBounds(this.clampToVisibleDisplay({ ...bounds, ...size }))
+      }
+      win.webContents.setZoomFactor(scale)
+    }
+
+    if (scale !== previous) {
+      this.persistPosition()
+      this.broadcast()
+    }
+  }
+
+  private scaledSize(expanded: boolean, scale: number): { width: number; height: number } {
+    const base = expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT
+    return { width: Math.round(WINDOW_WIDTH * scale), height: Math.round(base * scale) }
+  }
+
+  /** Locks dragging to the device's proportions, so the artwork never stretches. */
+  private applyAspectRatio(win: BrowserWindow, expanded: boolean): void {
+    win.setAspectRatio(WINDOW_WIDTH / (expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT))
   }
 
   // ------------------------------------------------------- secondary windows
