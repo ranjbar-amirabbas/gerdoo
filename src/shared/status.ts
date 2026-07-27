@@ -1,14 +1,7 @@
-import type { StatusId } from './types'
+import type { SemanticColor, StatusId } from './types'
 
 /** Semantic LED colours. Components read these tokens, never literals. */
-export type SemanticColor =
-  | 'focus'
-  | 'break'
-  | 'paused'
-  | 'oncall'
-  | 'meeting'
-  | 'available'
-  | 'dnd'
+export type { SemanticColor }
 
 export interface SemanticColorSpec {
   /** Lit pixel colour. */

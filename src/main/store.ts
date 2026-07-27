@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { normalizeModeColors } from '@shared/palette'
 import type {
   CalendarAccess,
   CalendarEvent,
@@ -61,6 +62,7 @@ export const DEFAULT_SETTINGS: Settings = {
   soundEnabled: true,
   brightness: 0.85,
   accentColor: null,
+  modeColors: {},
   reduceMotion: null,
   autoStartBreak: false,
   autoStartFocus: false,
@@ -108,6 +110,9 @@ export class Store {
       if (!existsSync(this.file)) return structuredClone(DEFAULT_STATE)
       const raw = JSON.parse(readFileSync(this.file, 'utf8')) as Partial<PersistedState>
       const settings = { ...DEFAULT_SETTINGS, ...(raw.settings ?? {}) }
+      // Colours come back as whatever was on disk; one bad hex would follow the
+      // palette into every window.
+      settings.modeColors = normalizeModeColors(settings.modeColors)
       // A state file written on a Mac — or one carried over by a sync folder —
       // can ask for a calendar source this platform cannot serve.
       if (process.platform !== 'darwin' && settings.calendarSource === 'system') {

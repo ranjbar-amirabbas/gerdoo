@@ -1,6 +1,6 @@
 import { BrowserWindow, Notification, app, ipcMain, powerMonitor, shell } from 'electron'
 import { IPC, type SetStatusRequest, type StartTimerRequest } from '@shared/ipc'
-import { normalizeAccent } from '@shared/palette'
+import { normalizeAccent, normalizeModeColors } from '@shared/palette'
 import type { AppSnapshot, Settings, StatusId, TimerMode } from '@shared/types'
 import { resolveAutoStatus } from './auto-status'
 import {
@@ -275,6 +275,9 @@ class GerdooApp {
     // A malformed colour would poison every window, so it never reaches disk.
     if (patch.accentColor !== undefined) {
       patch = { ...patch, accentColor: normalizeAccent(patch.accentColor) }
+    }
+    if (patch.modeColors !== undefined) {
+      patch = { ...patch, modeColors: normalizeModeColors(patch.modeColors) }
     }
     const settings = this.store.patchSettings(patch)
     if (patch.launchAtLogin !== undefined) this.applyLoginItem(settings)

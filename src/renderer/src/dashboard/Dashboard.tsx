@@ -105,7 +105,8 @@ export function Dashboard(): React.ReactElement {
 
   const week = groupByDay(snapshot.calendar.events, now)
   const peak = Math.max(...stats.days.map((d) => d.focusMs), 25 * 60_000)
-  const accent = paletteFor(snapshot.settings.accentColor).focus.accent
+  const accent = paletteFor(snapshot.settings.accentColor, snapshot.settings.modeColors).focus
+    .accent
 
   return (
     <div className="app" style={{ '--accent': accent } as React.CSSProperties}>

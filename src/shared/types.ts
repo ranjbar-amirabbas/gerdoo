@@ -9,6 +9,22 @@ export type StatusId =
 
 export type TimerMode = 'focus' | 'break'
 
+/**
+ * The device's modes, as the colour system sees them: the two timer modes, the
+ * paused state, and one per status. `@shared/status` gives each a colour spec.
+ */
+export type SemanticColor =
+  | 'focus'
+  | 'break'
+  | 'paused'
+  | 'oncall'
+  | 'meeting'
+  | 'available'
+  | 'dnd'
+
+/** Per-mode `#rrggbb` overrides. A mode with no entry follows the accent. */
+export type ModeColors = Partial<Record<SemanticColor, string>>
+
 /** What the menu bar prints next to the tray icon. */
 export type MenuBarText =
   /** Icon only. */
@@ -109,6 +125,11 @@ export interface Settings {
    * multi-hue one. See `@shared/palette`.
    */
   accentColor: string | null
+  /**
+   * Modes given a colour of their own, which wins over `accentColor`. Modes left
+   * out follow the accent as before.
+   */
+  modeColors: ModeColors
   /** null = follow the system reduced-motion setting. */
   reduceMotion: boolean | null
   autoStartBreak: boolean

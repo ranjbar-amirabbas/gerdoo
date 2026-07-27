@@ -162,6 +162,13 @@ cyan, break amber, on call red, in meeting violet, available deep blue, paused
 neutral amber, do not disturb red-orange. The accent flows into the shell — the
 brand dot, the primary key, the dial ticks — through the `--accent` variable.
 
+Settings → Focus Bar has two colour controls, and `src/shared/palette.ts` layers
+them. **Accent colour** re-derives the whole palette from one hue, so the device
+reads as one instrument. **Mode colours** then overrides single modes: that hex
+becomes the lit pixel exactly as picked — nothing is clamped, so the swatch is
+what the panel lights — and the unlit grid, the bloom and the shell accent are
+derived from it. A mode with no override follows the accent as before.
+
 ### The menu bar title
 
 Next to the tray icon Gerdoo prints its current state — `On Call`, `In Meeting`,

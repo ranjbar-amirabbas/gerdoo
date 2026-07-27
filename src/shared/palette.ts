@@ -6,11 +6,48 @@
  * re-derived from that one hue: roles keep their relative brightness and a small
  * hue rotation, so `break` still reads warmer than `focus` and `paused` still
  * reads muted, but the device looks like one instrument rather than seven.
+ *
+ * A mode can also be given a colour of its own, which wins over both: that hex
+ * becomes the lit pixel exactly as picked, and the unlit grid, the bloom and the
+ * shell accent are derived from it.
  */
 
-import { SEMANTIC_COLORS, type SemanticColor, type SemanticColorSpec } from './status'
+import { SEMANTIC_COLORS, type SemanticColorSpec } from './status'
+import type { ModeColors, SemanticColor } from './types'
 
 export type Palette = Record<SemanticColor, SemanticColorSpec>
+
+/** Display order of the modes wherever they are listed — timer first, then statuses. */
+export const MODE_ORDER: SemanticColor[] = [
+  'focus',
+  'break',
+  'paused',
+  'available',
+  'oncall',
+  'meeting',
+  'dnd'
+]
+
+/** Short enough for the swatch grid in Settings; `MODE_TITLES` says it in full. */
+export const MODE_LABELS: Record<SemanticColor, string> = {
+  focus: 'Focus',
+  break: 'Break',
+  paused: 'Paused',
+  available: 'Available',
+  oncall: 'On call',
+  meeting: 'Meeting',
+  dnd: 'DND'
+}
+
+export const MODE_TITLES: Record<SemanticColor, string> = {
+  focus: 'Focus session',
+  break: 'Break',
+  paused: 'Paused session',
+  available: 'Available',
+  oncall: 'On call',
+  meeting: 'In meeting',
+  dnd: 'Do not disturb'
+}
 
 export interface AccentPreset {
   label: string
@@ -41,6 +78,21 @@ export function normalizeAccent(value: unknown): string | null {
   if (!match) return null
   const body = match[1].toLowerCase()
   return `#${body.length === 3 ? body.replace(/./g, (char) => char + char) : body}`
+}
+
+/**
+ * Keeps only known modes with a parseable colour, in `MODE_ORDER` — a state file
+ * or an IPC payload can carry anything, and one bad entry would poison a mode.
+ */
+export function normalizeModeColors(value: unknown): ModeColors {
+  if (!value || typeof value !== 'object') return {}
+  const source = value as Record<string, unknown>
+  const result: ModeColors = {}
+  for (const mode of MODE_ORDER) {
+    const color = normalizeAccent(source[mode])
+    if (color) result[mode] = color
+  }
+  return result
 }
 
 interface RoleProfile {
@@ -136,6 +188,21 @@ function specFor(baseHsl: [number, number, number], profile: RoleProfile): Seman
   }
 }
 
+/**
+ * A mode the user coloured by hand. Unlike the accent path nothing is clamped:
+ * the pick *is* the lit pixel, so what the swatch shows is what the panel lights.
+ */
+function specFromActive(hex: string): SemanticColorSpec {
+  const rgb = hexToRgb(hex)
+  const [hue, sat, light] = rgbToHsl(rgb)
+  return {
+    active: hex,
+    inactive: toHex(hslToRgb(hue, Math.min(sat, INACTIVE_MAX_SAT), INACTIVE_LIGHT)),
+    glow: `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${GLOW_ALPHA})`,
+    accent: toHex(hslToRgb(hue, sat * 0.95, light * 0.84))
+  }
+}
+
 function derive(accent: string): Palette {
   const baseHsl = rgbToHsl(hexToRgb(accent))
   const palette = {} as Palette
@@ -148,14 +215,27 @@ function derive(accent: string): Palette {
 // Every render of every window asks for the palette; the maths is cheap but the
 // object identity matters to the LED engine's change check.
 const cache = new Map<string, Palette>()
+// Dragging a colour well emits a new hex per frame, so the key space is really a
+// stream. Nothing older matters once the user settles, so drop the lot.
+const MAX_CACHED_PALETTES = 64
 
 /** The palette to render with. Anything unparseable falls back to the default. */
-export function paletteFor(accentColor: string | null | undefined): Palette {
+export function paletteFor(
+  accentColor: string | null | undefined,
+  modeColors?: ModeColors | null
+): Palette {
   const accent = normalizeAccent(accentColor)
-  if (!accent) return SEMANTIC_COLORS
-  const cached = cache.get(accent)
+  const overrides = normalizeModeColors(modeColors)
+  const overridden = MODE_ORDER.filter((mode) => overrides[mode])
+  if (!accent && overridden.length === 0) return SEMANTIC_COLORS
+
+  const key = `${accent ?? ''}|${overridden.map((mode) => `${mode}:${overrides[mode]}`).join(',')}`
+  const cached = cache.get(key)
   if (cached) return cached
-  const palette = derive(accent)
-  cache.set(accent, palette)
+
+  const palette = accent ? derive(accent) : { ...SEMANTIC_COLORS }
+  for (const mode of overridden) palette[mode] = specFromActive(overrides[mode] as string)
+  if (cache.size >= MAX_CACHED_PALETTES) cache.clear()
+  cache.set(key, palette)
   return palette
 }

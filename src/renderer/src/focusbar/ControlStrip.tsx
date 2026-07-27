@@ -50,7 +50,7 @@ export function ControlStrip({ snapshot }: ControlStripProps): React.ReactElemen
       <StatusMenu
         value={status.id}
         customLabel={status.customLabel}
-        palette={paletteFor(settings.accentColor)}
+        palette={paletteFor(settings.accentColor, settings.modeColors)}
         onSelect={(id) => void window.gerdoo.status.set({ id })}
       />
 
