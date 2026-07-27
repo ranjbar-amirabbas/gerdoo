@@ -239,6 +239,47 @@ function drawMascot(p) {
   for (const [cx, cy, r] of lobes) p.fillCircle(cx, cy, r, BONE)
 }
 
+const CLEAR = [0, 0, 0, 0]
+
+/**
+ * The mascot reduced to a menu bar glyph.
+ *
+ * A template image is a stencil — macOS keeps the alpha and throws the colour
+ * away — so the dog has to survive as a silhouette with holes punched in it.
+ * The outline is the mascot's own ear and head clusters, and the face is drawn
+ * larger than a literal transcription would be: at 16 px an eye is two pixels,
+ * and the mascot's real eyes would vanish.
+ */
+function drawMascotGlyph(canvas, color) {
+  // Bounding box of the ear and head clusters in the mascot's 200 x 236 space.
+  const box = { x: 7, y: 10, w: 186, h: 160 }
+  const pad = canvas.size * 0.03
+  const scale = Math.min((canvas.size - pad * 2) / box.w, (canvas.size - pad * 2) / box.h)
+  const p = createPainter(
+    canvas,
+    scale,
+    (canvas.size - box.w * scale) / 2 - box.x * scale,
+    (canvas.size - box.h * scale) / 2 - box.y * scale
+  )
+  const mirror = (circles) => circles.map(([x, y, r]) => [200 - x, y, r])
+
+  // The lowest ear circle is dropped: hanging past the chin, two pixels wide,
+  // it read as a pair of feet rather than as fur.
+  const ear = EAR.slice(0, 2)
+  for (const [cx, cy, r] of [...ear, ...mirror(ear), ...HEAD]) p.fillCircle(cx, cy, r, color)
+
+  // A notch on each side, so the ears read as ears and not as one wide lump.
+  p.fillEllipse(66, 146, 13, 11, CLEAR)
+  p.fillEllipse(134, 146, 13, 11, CLEAR)
+
+  // Face, punched back out of the silhouette. The muzzle stops short of the
+  // chin: punch it any lower and the head loses its bottom edge.
+  p.fillCircle(74, 84, 12, CLEAR)
+  p.fillCircle(126, 84, 12, CLEAR)
+  p.fillEllipse(100, 118, 26, 16, CLEAR)
+  p.fillEllipse(100, 110, 11, 7, color)
+}
+
 /** Box-filters a supersampled buffer down to `size`, alpha-weighted so the
     edges of the rounded background do not darken against transparency. */
 function downsample(source, size, factor) {
@@ -294,10 +335,11 @@ function fillBackdrop(canvas, color, radius) {
 }
 
 // Template images: macOS recolours black-on-alpha for light/dark menu bars.
-// The mascot is far too detailed to survive 16 px of monochrome, so the tray
-// keeps the LED-bar glyph.
-writeIcon('resources/trayTemplate.png', 16, (c) => drawDevice(c, BLACK))
-writeIcon('resources/trayTemplate@2x.png', 32, (c) => drawDevice(c, BLACK))
+// The mascot's head, stencilled — see `drawMascotGlyph`.
+writeIcon('resources/trayTemplate.png', 16, (c) => drawMascotGlyph(c, BLACK), { supersample: 8 })
+writeIcon('resources/trayTemplate@2x.png', 32, (c) => drawMascotGlyph(c, BLACK), {
+  supersample: 8
+})
 
 // App icon: the mascot on the device shell, drawn at 3x and filtered down.
 writeIcon(
