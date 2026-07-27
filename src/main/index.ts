@@ -2,6 +2,7 @@ import { BrowserWindow, Notification, app, ipcMain, powerMonitor, shell } from '
 import { IPC, type SetStatusRequest, type StartTimerRequest } from '@shared/ipc'
 import { normalizeAccent } from '@shared/palette'
 import type { AppSnapshot, Settings, StatusId, TimerMode } from '@shared/types'
+import { resolveAutoStatus } from './auto-status'
 import {
   CalendarService,
   EventKitCalendarProvider,
@@ -85,8 +86,15 @@ class GerdooApp {
     this.timer.on('complete', (record) => this.onSessionComplete(record.mode))
     this.timer.on('modeChange', () => this.windows.playSound('mode'))
 
-    this.calendar.on('change', () => this.publish())
+    this.calendar.on('change', () => {
+      this.syncCalendarStatus()
+      this.publish()
+    })
     this.calendar.start()
+    // The cached events are already in place, and a meeting may have ended while
+    // Gerdoo was closed — a status left On Call by the last run is handed back
+    // here rather than waiting for the calendar to change under us.
+    this.syncCalendarStatus()
     void this.promptForCalendarOnFirstRun()
 
     // A resumed Mac may have slept through the deadline — re-check immediately.
@@ -228,16 +236,39 @@ class GerdooApp {
     this.publish()
   }
 
-  private setStatus(request: SetStatusRequest): void {
+  /**
+   * `auto` marks a change Gerdoo made for a calendar event. Anything else is the
+   * user speaking, and it ends any hold the calendar had on the status — their
+   * choice then stands until they change it again.
+   */
+  private setStatus(request: SetStatusRequest, auto = false): void {
     const current = this.store.get().status
     this.store.patch({
       status: {
         id: request.id,
         customLabel: request.customLabel ?? current.customLabel,
         until: request.until === undefined ? current.until : request.until
-      }
+      },
+      ...(auto ? {} : { autoStatus: null })
     })
     this.publish()
+  }
+
+  /**
+   * Puts the status where the calendar says it should be: ON CALL while an event
+   * runs, and back to whatever preceded it once the event ends.
+   */
+  private syncCalendarStatus(): void {
+    const state = this.store.get()
+    const decision = resolveAutoStatus({
+      enabled: state.settings.autoOnCall,
+      current: this.calendar.getState().current,
+      status: state.status,
+      hold: state.autoStatus,
+      now: Date.now()
+    })
+    if (decision.hold !== state.autoStatus) this.store.patch({ autoStatus: decision.hold })
+    if (decision.status) this.setStatus(decision.status, true)
   }
 
   private updateSettings(patch: Partial<Settings>): void {
@@ -253,6 +284,9 @@ class GerdooApp {
     }
     if (patch.icsUrl !== undefined) this.calendar.setIcsUrl(settings.icsUrl)
     if (patch.calendarSource !== undefined) this.calendar.setSource(settings.calendarSource)
+    // Switched on during a meeting it takes effect now; switched off it hands
+    // the status back rather than leaving it stuck on ON CALL.
+    if (patch.autoOnCall !== undefined) this.syncCalendarStatus()
     this.publish()
   }
 

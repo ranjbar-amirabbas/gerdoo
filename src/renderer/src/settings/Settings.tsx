@@ -463,6 +463,24 @@ export function Settings(): React.ReactElement {
             </div>
           </div>
 
+          <div className="row">
+            <div className="row__text">
+              <span className="row__title">Go On Call in meetings</span>
+              <span className="row__hint">
+                Switches the status to ON CALL while a calendar event is running,
+                then puts back whatever it was before. Changing the status by hand
+                during a meeting keeps your choice.
+              </span>
+            </div>
+            <div className="control">
+              <Switch
+                checked={settings.autoOnCall}
+                label="Go On Call in meetings"
+                onChange={(autoOnCall) => update({ autoOnCall })}
+              />
+            </div>
+          </div>
+
           {settings.calendarSource === 'ics' ? (
             <>
               <div className="row">

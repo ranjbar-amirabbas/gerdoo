@@ -11,6 +11,7 @@ import type {
   TimerState,
   WindowState
 } from '@shared/types'
+import type { AutoStatusHold } from './auto-status'
 
 export interface PersistedBounds {
   x: number
@@ -31,6 +32,12 @@ export interface PersistedState {
   settings: Settings
   window: WindowState
   status: StatusState
+  /**
+   * Set while a calendar event is holding the status at ON CALL — see
+   * `auto-status.ts`. Persisted so a restart mid-meeting still knows to hand the
+   * status back afterwards.
+   */
+  autoStatus: AutoStatusHold | null
   /** Saved so an interrupted session survives a restart or a crash. */
   timer: TimerState | null
   focusBarPosition: PersistedBounds | null
@@ -64,6 +71,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // macOS. Elsewhere the sample schedule is the honest default: an ICS feed
   // works everywhere but needs a URL only the user has.
   calendarSource: process.platform === 'darwin' ? 'system' : 'sample',
+  autoOnCall: true,
   icsUrl: '',
   menuBarText: 'status'
 }
@@ -73,6 +81,7 @@ const DEFAULT_STATE: PersistedState = {
   settings: DEFAULT_SETTINGS,
   window: { pinned: false, expanded: false, compact: false, scale: 1 },
   status: { id: 'available', customLabel: '', until: null },
+  autoStatus: null,
   timer: null,
   focusBarPosition: null,
   sessions: [],

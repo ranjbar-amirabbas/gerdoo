@@ -118,6 +118,11 @@ export interface Settings {
   hideOnBlur: boolean
   defaultTitle: string
   calendarSource: CalendarSource
+  /**
+   * Switch to ON CALL for the length of a calendar event, then put the previous
+   * status back. All-day events never count as "now", so they never trigger it.
+   */
+  autoOnCall: boolean
   /** The feed read when `calendarSource` is `ics`. Empty until one is given. */
   icsUrl: string
   menuBarText: MenuBarText

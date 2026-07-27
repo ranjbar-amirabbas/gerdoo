@@ -107,7 +107,12 @@ function statusSub(snapshot: AppSnapshot, now: number): string {
   if (status.id === 'dnd') {
     return status.until ? `BACK AT ${formatClock(status.until)}` : 'STAY IN THE ZONE'
   }
-  if (status.id === 'oncall') return meta.sub
+  if (status.id === 'oncall') {
+    // A meeting that put the status here leaves its end time behind, which says
+    // more than the static sub-label does.
+    const until = calendar.current?.endsAt ?? status.until
+    return until ? `UNTIL ${formatClock(until)}` : meta.sub
+  }
 
   // Available / custom: prefer calendar awareness, then a focus suggestion.
   if (calendar.current) {
