@@ -23,10 +23,10 @@ export interface SemanticColorSpec {
 
 export const SEMANTIC_COLORS: Record<SemanticColor, SemanticColorSpec> = {
   focus: {
-    active: '#6fd3ff',
-    inactive: '#0e2530',
-    glow: 'rgba(90, 200, 255, 0.55)',
-    accent: '#4cc4f5'
+    active: '#c8823c',
+    inactive: '#2a1a09',
+    glow: 'rgba(200, 130, 60, 0.55)',
+    accent: '#b8763a'
   },
   break: {
     active: '#ffbd5c',
