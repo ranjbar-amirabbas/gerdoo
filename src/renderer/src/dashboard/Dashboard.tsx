@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { describeWhen, formatClock, formatDuration } from '@shared/display'
-import { SEMANTIC_COLORS } from '@shared/status'
+import { paletteFor } from '@shared/palette'
 import type { CalendarEvent, SessionRecord } from '@shared/types'
 import { useNow } from '@/hooks/useNow'
 import { useSnapshot } from '@/hooks/useSnapshot'
@@ -105,7 +105,7 @@ export function Dashboard(): React.ReactElement {
 
   const week = groupByDay(snapshot.calendar.events, now)
   const peak = Math.max(...stats.days.map((d) => d.focusMs), 25 * 60_000)
-  const accent = SEMANTIC_COLORS.focus.accent
+  const accent = paletteFor(snapshot.settings.accentColor).focus.accent
 
   return (
     <div className="app" style={{ '--accent': accent } as React.CSSProperties}>

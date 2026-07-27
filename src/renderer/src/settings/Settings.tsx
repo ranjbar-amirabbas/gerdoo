@@ -1,4 +1,5 @@
-import { SEMANTIC_COLORS } from '@shared/status'
+import { Pipette } from 'lucide-react'
+import { ACCENT_PRESETS, normalizeAccent, paletteFor } from '@shared/palette'
 import type { CalendarAccess, MenuBarText, Settings as SettingsShape } from '@shared/types'
 import { useSnapshot } from '@/hooks/useSnapshot'
 
@@ -45,6 +46,55 @@ function Switch({
   )
 }
 
+/**
+ * Swatch row for the accent colour. The first swatch restores the built-in
+ * multi-hue palette; the last one opens the system colour picker.
+ */
+function AccentPicker({
+  value,
+  onChange
+}: {
+  value: string | null
+  onChange(next: string | null): void
+}): React.ReactElement {
+  const isPreset = ACCENT_PRESETS.some((preset) => preset.value === value)
+  const custom = value !== null && !isPreset
+
+  return (
+    <div className="swatches" role="radiogroup" aria-label="Accent colour">
+      {ACCENT_PRESETS.map((preset) => (
+        <button
+          key={preset.label}
+          type="button"
+          role="radio"
+          className="swatch"
+          aria-checked={value === preset.value}
+          aria-label={preset.label}
+          title={preset.label}
+          data-active={value === preset.value ? 'true' : undefined}
+          data-default={preset.value === null ? 'true' : undefined}
+          style={preset.value ? { background: preset.value } : undefined}
+          onClick={() => onChange(preset.value)}
+        />
+      ))}
+      <label
+        className="swatch swatch--custom"
+        title="Custom colour"
+        data-active={custom ? 'true' : undefined}
+        style={custom ? { background: value } : undefined}
+      >
+        <Pipette size={12} strokeWidth={2.2} aria-hidden="true" />
+        <input
+          type="color"
+          aria-label="Custom accent colour"
+          value={value ?? '#c8823c'}
+          onChange={(event) => onChange(normalizeAccent(event.target.value))}
+        />
+      </label>
+    </div>
+  )
+}
+
 export function Settings(): React.ReactElement {
   const snapshot = useSnapshot()
   if (!snapshot) return <div className="app" aria-busy="true" />
@@ -58,7 +108,10 @@ export function Settings(): React.ReactElement {
     settings.reduceMotion === null ? 'system' : settings.reduceMotion ? 'on' : 'off'
 
   return (
-    <div className="app" style={{ '--accent': SEMANTIC_COLORS.focus.accent } as React.CSSProperties}>
+    <div
+      className="app"
+      style={{ '--accent': paletteFor(settings.accentColor).focus.accent } as React.CSSProperties}
+    >
       <header className="app__titlebar">
         <span className="app__title">Settings</span>
       </header>
@@ -146,6 +199,23 @@ export function Settings(): React.ReactElement {
 
         <section className="section">
           <h2 className="section__title">Focus Bar</h2>
+
+          <div className="row">
+            <div className="row__text">
+              <span className="row__title">Accent colour</span>
+              <span className="row__hint">
+                {settings.accentColor
+                  ? 'Panel, buttons and status dots are all shades of this colour.'
+                  : 'Each status keeps its own colour.'}
+              </span>
+            </div>
+            <div className="control">
+              <AccentPicker
+                value={settings.accentColor}
+                onChange={(accentColor) => update({ accentColor })}
+              />
+            </div>
+          </div>
 
           <div className="row">
             <div className="row__text">

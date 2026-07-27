@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { ChevronDown, ChevronUp, Pin } from 'lucide-react'
 import { deriveLedContent } from '@shared/display'
-import { SEMANTIC_COLORS } from '@shared/status'
 import { LedPanel } from '@/led/LedPanel'
 import { useNow } from '@/hooks/useNow'
+import { usePalette } from '@/hooks/usePalette'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useSnapshot } from '@/hooks/useSnapshot'
 import { playCue } from '@/sound'
@@ -14,6 +14,7 @@ export function FocusBar(): React.ReactElement {
   const snapshot = useSnapshot()
   const now = useNow()
   const reduceMotion = useReducedMotion(snapshot?.settings.reduceMotion)
+  const palette = usePalette(snapshot)
 
   useEffect(() => window.gerdoo.onSound(playCue), [])
 
@@ -39,7 +40,7 @@ export function FocusBar(): React.ReactElement {
   }
 
   const content = deriveLedContent(snapshot, now)
-  const palette = SEMANTIC_COLORS[content.color]
+  const colors = palette[content.color]
   const { pinned, expanded } = snapshot.window
 
   return (
@@ -47,7 +48,7 @@ export function FocusBar(): React.ReactElement {
       <section
         className="device"
         data-expanded={expanded ? 'true' : undefined}
-        style={{ '--accent': palette.accent, '--glow': palette.glow } as React.CSSProperties}
+        style={{ '--accent': colors.accent, '--glow': colors.glow } as React.CSSProperties}
         aria-label="Gerdoo Focus Bar"
       >
         <header className="device__grip drag">
@@ -84,6 +85,7 @@ export function FocusBar(): React.ReactElement {
           <div className="device__bezel">
             <LedPanel
               content={content}
+              palette={palette}
               brightness={snapshot.settings.brightness}
               reduceMotion={reduceMotion}
             />

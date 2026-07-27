@@ -1,6 +1,7 @@
 import { Coffee, LayoutDashboard, Pin, Volume2, VolumeX } from 'lucide-react'
 import { describeWhen, suggestFocus } from '@shared/display'
-import { STATUSES, STATUS_ORDER, SEMANTIC_COLORS } from '@shared/status'
+import { paletteFor } from '@shared/palette'
+import { STATUSES, STATUS_ORDER } from '@shared/status'
 import type { AppSnapshot } from '@shared/types'
 
 interface ExpandedPanelProps {
@@ -10,6 +11,7 @@ interface ExpandedPanelProps {
 
 export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.ReactElement {
   const { settings, status, calendar, timer, window: windowState } = snapshot
+  const palette = paletteFor(settings.accentColor)
   const suggestion = suggestFocus(calendar.next, now, settings.presets)
   const sessionActive = timer.phase === 'running' || timer.phase === 'paused'
 
@@ -73,7 +75,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
             >
               <span
                 className="status-dot"
-                style={{ background: SEMANTIC_COLORS[STATUSES[id].color].accent }}
+                style={{ background: palette[STATUSES[id].color].accent }}
                 aria-hidden="true"
               />
               {/* Short forms keep the row to one line; the full name stays in the label. */}

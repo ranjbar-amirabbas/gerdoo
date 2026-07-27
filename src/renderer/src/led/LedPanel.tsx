@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { LedContent } from '@shared/display'
-import { colorsFor } from '@shared/display'
+import type { Palette } from '@shared/palette'
 import { Mascot } from '@/components/Mascot'
 import { LedEngine, type LedLineSpec, type LedTransition } from './engine'
 
@@ -9,6 +9,7 @@ export const LED_ROWS = 34
 
 interface LedPanelProps {
   content: LedContent
+  palette: Palette
   brightness: number
   reduceMotion: boolean
 }
@@ -28,7 +29,12 @@ function layout(content: LedContent): LedLineSpec[] {
   ]
 }
 
-export function LedPanel({ content, brightness, reduceMotion }: LedPanelProps): React.ReactElement {
+export function LedPanel({
+  content,
+  palette,
+  brightness,
+  reduceMotion
+}: LedPanelProps): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const hostRef = useRef<HTMLDivElement | null>(null)
   const engineRef = useRef<LedEngine | null>(null)
@@ -64,8 +70,8 @@ export function LedPanel({ content, brightness, reduceMotion }: LedPanelProps): 
   }, [])
 
   useEffect(() => {
-    engineRef.current?.setColors(colorsFor(content.color))
-  }, [content.color])
+    engineRef.current?.setColors(palette[content.color])
+  }, [content.color, palette])
 
   useEffect(() => {
     engineRef.current?.setBrightness(brightness)

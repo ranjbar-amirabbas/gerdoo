@@ -1,4 +1,4 @@
-import { SEMANTIC_COLORS, STATUSES, type SemanticColor } from './status'
+import { STATUSES, type SemanticColor } from './status'
 import type { AppSnapshot, CalendarEvent, TimerState } from './types'
 
 export interface LedContent {
@@ -165,10 +165,6 @@ export function deriveLedContent(snapshot: AppSnapshot, now: number): LedContent
     color: meta.color,
     transitionKey: `status:${status.id}`
   }
-}
-
-export function colorsFor(color: SemanticColor) {
-  return SEMANTIC_COLORS[color]
 }
 
 /** LED labels are shouty by design; the menu bar is not. `ON CALL` → `On Call`. */

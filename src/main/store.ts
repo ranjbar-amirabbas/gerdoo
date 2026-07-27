@@ -48,6 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   breakMinutes: 5,
   soundEnabled: true,
   brightness: 0.85,
+  accentColor: null,
   reduceMotion: null,
   autoStartBreak: false,
   launchAtLogin: false,
