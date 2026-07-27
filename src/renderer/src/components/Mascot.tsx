@@ -53,9 +53,13 @@ export function Mascot(): React.ReactElement {
           <use href="#mascot-ear" fill="#e9c491" stroke="#6b4326" strokeWidth="5" />
           <use href="#mascot-ear" fill="#e9c491" />
         </g>
-        <g className="mascot__ear mascot__ear--right" transform="translate(200 0) scale(-1 1)">
-          <use href="#mascot-ear" fill="#e9c491" stroke="#6b4326" strokeWidth="5" />
-          <use href="#mascot-ear" fill="#e9c491" />
+        {/* The mirror lives on a wrapper: a CSS animation on this group would
+            replace the `transform` attribute and flatten the flip. */}
+        <g transform="translate(200 0) scale(-1 1)">
+          <g className="mascot__ear mascot__ear--right">
+            <use href="#mascot-ear" fill="#e9c491" stroke="#6b4326" strokeWidth="5" />
+            <use href="#mascot-ear" fill="#e9c491" />
+          </g>
         </g>
 
         <g className="mascot__head">
