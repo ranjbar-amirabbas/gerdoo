@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { LedContent } from '@shared/display'
+import { compactLabel, type LedContent } from '@shared/display'
 import { BIG_FONT, SMALL_FONT, measureText } from '@shared/led-font'
 import type { Palette } from '@shared/palette'
 import { Mascot } from '@/components/Mascot'
@@ -8,9 +8,11 @@ import { LedEngine, type LedLineSpec, type LedTransition } from './engine'
 export const LED_COLS = 140
 export const LED_ROWS = 34
 
-/** The compact screen carries one line, so it needs a grid of its own. */
+/** The compact screen carries the mode and the big line, on a grid of its own.
+    Rows fit `SMALL_FONT` + a dark row + `BIG_FONT` exactly; the grid is wider
+    than it is tall, so the extra rows cost no dot pitch. */
 export const LED_COMPACT_COLS = 64
-export const LED_COMPACT_ROWS = 18
+export const LED_COMPACT_ROWS = 22
 
 interface LedPanelProps {
   content: LedContent
@@ -37,19 +39,23 @@ function layout(content: LedContent): LedLineSpec[] {
 }
 
 /**
- * Compact: whatever the big line would have been, vertically centred. With no
- * countdown to show — an idle status without a clock — the label takes its place
- * at whichever scale still fits across the narrow grid.
+ * Compact: the mode over the big line, so a shrunken device still says what it
+ * is counting. With no countdown to show — an idle status without a clock — the
+ * label takes the whole screen at whichever scale fits across the narrow grid.
  */
 function compactLayout(content: LedContent): LedLineSpec[] {
   const centre = (height: number): number => Math.round((LED_COMPACT_ROWS - height) / 2)
+  const label = compactLabel(content.label)
   if (content.big) {
-    return [{ text: content.big, font: 'big', scale: 1, row: centre(BIG_FONT.height) }]
+    return [
+      { text: label, font: 'small', scale: 1, row: 0 },
+      { text: content.big, font: 'big', scale: 1, row: LED_COMPACT_ROWS - BIG_FONT.height }
+    ]
   }
-  const scale = measureText(SMALL_FONT, content.label, 2) <= LED_COMPACT_COLS ? 2 : 1
+  const scale = measureText(SMALL_FONT, label, 2) <= LED_COMPACT_COLS ? 2 : 1
   return [
     {
-      text: content.label,
+      text: label,
       font: 'small',
       scale,
       row: centre(SMALL_FONT.height * scale)
