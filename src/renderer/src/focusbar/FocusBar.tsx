@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { ChevronDown, ChevronUp, Pin } from 'lucide-react'
+import { ChevronDown, ChevronUp, Minimize2, Pin } from 'lucide-react'
 import { deriveLedContent } from '@shared/display'
-import { DEVICE_SCALE_STEP, clampDeviceScale } from '@shared/types'
+import { DEVICE_SCALE_STEP, baseWindowSize, clampDeviceScale } from '@shared/types'
 import { LedPanel } from '@/led/LedPanel'
 import { useNow } from '@/hooks/useNow'
 import { usePalette } from '@/hooks/usePalette'
@@ -9,6 +9,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useSnapshot } from '@/hooks/useSnapshot'
 import { hasAccelerator, shortcut } from '@/platform'
 import { playCue } from '@/sound'
+import { CompactStrip } from './CompactStrip'
 import { ControlStrip } from './ControlStrip'
 import { ExpandedPanel } from './ExpandedPanel'
 import { ResizeGrip } from './ResizeGrip'
@@ -49,6 +50,9 @@ export function FocusBar(): React.ReactElement {
       } else if (event.key.toLowerCase() === 'p' && hasAccelerator(event)) {
         event.preventDefault()
         void window.gerdoo.window.togglePinned()
+      } else if (event.key.toLowerCase() === 'm' && hasAccelerator(event)) {
+        event.preventDefault()
+        void window.gerdoo.window.toggleCompact()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -61,14 +65,41 @@ export function FocusBar(): React.ReactElement {
 
   const content = deriveLedContent(snapshot, now)
   const colors = palette[content.color]
-  const { pinned, expanded } = snapshot.window
+  const { pinned, expanded, compact, scale } = snapshot.window
+  const shell = { '--accent': colors.accent, '--glow': colors.glow } as React.CSSProperties
+  const baseWidth = baseWindowSize(snapshot.window).width
+
+  if (compact) {
+    return (
+      <div className="stage">
+        <section className="device device--compact" style={shell} aria-label="Gerdoo Focus Bar">
+          <div className="compact drag">
+            <div className="compact__screen">
+              <div className="device__bezel">
+                <LedPanel
+                  compact
+                  content={content}
+                  palette={palette}
+                  brightness={snapshot.settings.brightness}
+                  reduceMotion={reduceMotion}
+                />
+              </div>
+            </div>
+            <CompactStrip snapshot={snapshot} />
+          </div>
+
+          <ResizeGrip scale={scale} baseWidth={baseWidth} />
+        </section>
+      </div>
+    )
+  }
 
   return (
     <div className="stage">
       <section
         className="device"
         data-expanded={expanded ? 'true' : undefined}
-        style={{ '--accent': colors.accent, '--glow': colors.glow } as React.CSSProperties}
+        style={shell}
         aria-label="Gerdoo Focus Bar"
       >
         <header className="device__grip drag">
@@ -77,6 +108,15 @@ export function FocusBar(): React.ReactElement {
             GERDOO
           </span>
           <div className="device__grip-actions no-drag">
+            <button
+              type="button"
+              className="key key--icon no-drag"
+              title={`Compact view (${shortcut('m')})`}
+              aria-label="Switch to compact view"
+              onClick={() => void window.gerdoo.window.setCompact(true)}
+            >
+              <Minimize2 size={14} strokeWidth={2.4} />
+            </button>
             <button
               type="button"
               className="key key--icon no-drag"
@@ -126,7 +166,7 @@ export function FocusBar(): React.ReactElement {
           {expanded ? <ExpandedPanel snapshot={snapshot} now={now} /> : null}
         </div>
 
-        <ResizeGrip scale={snapshot.window.scale} />
+        <ResizeGrip scale={scale} baseWidth={baseWidth} />
       </section>
     </div>
   )

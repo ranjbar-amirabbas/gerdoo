@@ -308,6 +308,16 @@ class GerdooApp {
       this.publish()
       return result
     })
+    handle<boolean>(IPC.windowSetCompact, (compact) => {
+      const result = this.windows.setCompact(Boolean(compact))
+      this.publish()
+      return result
+    })
+    handle(IPC.windowToggleCompact, () => {
+      const result = this.windows.toggleCompact()
+      this.publish()
+      return result
+    })
     handle(IPC.windowHide, () => this.windows.hideIfUnpinned())
     handle(IPC.windowCloseSelf, (_payload, event) => this.windows.closeWindow(event.sender.id))
     handle(IPC.windowOpenDashboard, () => this.windows.openDashboard())

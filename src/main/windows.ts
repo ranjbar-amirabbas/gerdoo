@@ -1,14 +1,12 @@
 import { BrowserWindow, app, screen, shell } from 'electron'
 import { join } from 'node:path'
-import type { AppSnapshot } from '@shared/types'
+import type { AppSnapshot, WindowState } from '@shared/types'
 import {
-  COLLAPSED_HEIGHT,
-  EXPANDED_HEIGHT,
   MAX_DEVICE_SCALE,
   MIN_DEVICE_SCALE,
   SNAPSHOT_CHANNEL,
   SOUND_CHANNEL,
-  WINDOW_WIDTH,
+  baseWindowSize,
   clampDeviceScale,
   type SoundCue
 } from '@shared/types'
@@ -98,13 +96,11 @@ export class WindowManager {
 
     const { window: windowState } = this.store.get()
     const scale = this.getScale()
-    const size = this.scaledSize(windowState.expanded, scale)
+    const size = this.scaledSize(windowState, scale)
 
     const win = new BrowserWindow({
       width: size.width,
       height: size.height,
-      minWidth: Math.round(WINDOW_WIDTH * MIN_DEVICE_SCALE),
-      maxWidth: Math.round(WINDOW_WIDTH * MAX_DEVICE_SCALE),
       show: false,
       frame: false,
       transparent: true,
@@ -134,7 +130,7 @@ export class WindowManager {
     })
 
     win.setWindowButtonVisibility?.(false)
-    this.applyAspectRatio(win, windowState.expanded)
+    this.applyFrame(win, windowState)
 
     // The device is one piece of artwork: everything in it is laid out in fixed
     // pixels, so resizing means zooming the page, never reflowing it.
@@ -149,12 +145,12 @@ export class WindowManager {
     // Live while the user drags an edge; `resized` then snaps away the rounding.
     win.on('resize', () => {
       if (win.isDestroyed()) return
-      win.webContents.setZoomFactor(clampDeviceScale(win.getBounds().width / WINDOW_WIDTH))
+      win.webContents.setZoomFactor(this.scaleFromWidth(win.getBounds().width))
     })
 
     win.on('resized', () => {
       if (win.isDestroyed()) return
-      this.applyScale(clampDeviceScale(win.getBounds().width / WINDOW_WIDTH))
+      this.applyScale(this.scaleFromWidth(win.getBounds().width))
     })
 
     win.on('blur', () => {
@@ -308,23 +304,53 @@ export class WindowManager {
   }
 
   setExpanded(expanded: boolean): boolean {
-    this.store.patch({ window: { ...this.store.get().window, expanded } })
-    const win = this.focusBar
-    if (win && !win.isDestroyed()) {
-      const bounds = win.getBounds()
-      const { height } = this.scaledSize(expanded, this.getScale())
-      const target = this.clampToVisibleDisplay({ ...bounds, height })
-      // The ratio has to move before the bounds, or AppKit fights the new height.
-      this.applyAspectRatio(win, expanded)
-      // macOS animates the resize, which is what sells the "panel sliding
-      // open". Windows ignores the flag and snaps, which is its own convention.
-      win.setBounds(target, true)
-    }
+    // Compact has no drawer; opening one means leaving compact first.
+    this.applyView({ expanded, compact: expanded ? false : undefined })
     return expanded
   }
 
   toggleExpanded(): boolean {
     return this.setExpanded(!this.getExpanded())
+  }
+
+  // ------------------------------------------------------------------ compact
+
+  getCompact(): boolean {
+    return this.store.get().window.compact
+  }
+
+  setCompact(compact: boolean): boolean {
+    this.applyView({ compact })
+    return compact
+  }
+
+  toggleCompact(): boolean {
+    return this.setCompact(!this.getCompact())
+  }
+
+  /**
+   * Moves the window to the size the given view asks for. `expanded` survives a
+   * trip through compact, so leaving it puts the device back as it was.
+   */
+  private applyView(patch: { expanded?: boolean; compact?: boolean }): void {
+    const current = this.store.get().window
+    const next: WindowState = {
+      ...current,
+      expanded: patch.expanded ?? current.expanded,
+      compact: patch.compact ?? current.compact
+    }
+    this.store.patch({ window: next })
+
+    const win = this.focusBar
+    if (!win || win.isDestroyed()) return
+    const bounds = win.getBounds()
+    const size = this.scaledSize(next, this.getScale())
+    const target = this.clampToVisibleDisplay({ ...bounds, ...size })
+    // The ratio has to move before the bounds, or AppKit fights the new height.
+    this.applyFrame(win, next)
+    // macOS animates the resize, which is what sells the "panel sliding
+    // open". Windows ignores the flag and snaps, which is its own convention.
+    win.setBounds(target, true)
   }
 
   // ------------------------------------------------------------------- resize
@@ -346,8 +372,7 @@ export class WindowManager {
 
     const win = this.focusBar
     if (win && !win.isDestroyed()) {
-      const expanded = this.store.get().window.expanded
-      const size = this.scaledSize(expanded, scale)
+      const size = this.scaledSize(this.store.get().window, scale)
       const bounds = win.getBounds()
       if (bounds.width !== size.width || bounds.height !== size.height) {
         win.setBounds(this.clampToVisibleDisplay({ ...bounds, ...size }))
@@ -361,14 +386,30 @@ export class WindowManager {
     }
   }
 
-  private scaledSize(expanded: boolean, scale: number): { width: number; height: number } {
-    const base = expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT
-    return { width: Math.round(WINDOW_WIDTH * scale), height: Math.round(base * scale) }
+  /** The scale a dragged window width stands for, in whichever view is showing. */
+  private scaleFromWidth(width: number): number {
+    return clampDeviceScale(width / baseWindowSize(this.store.get().window).width)
   }
 
-  /** Locks dragging to the device's proportions, so the artwork never stretches. */
-  private applyAspectRatio(win: BrowserWindow, expanded: boolean): void {
-    win.setAspectRatio(WINDOW_WIDTH / (expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT))
+  private scaledSize(
+    view: { compact: boolean; expanded: boolean },
+    scale: number
+  ): { width: number; height: number } {
+    const base = baseWindowSize(view)
+    return { width: Math.round(base.width * scale), height: Math.round(base.height * scale) }
+  }
+
+  /**
+   * Locks dragging to the device's proportions, so the artwork never stretches,
+   * and bounds the drag to the scale range. Both depend on the view, so they are
+   * re-applied every time it changes.
+   */
+  private applyFrame(win: BrowserWindow, view: { compact: boolean; expanded: boolean }): void {
+    const min = this.scaledSize(view, MIN_DEVICE_SCALE)
+    const max = this.scaledSize(view, MAX_DEVICE_SCALE)
+    win.setAspectRatio(baseWindowSize(view).width / baseWindowSize(view).height)
+    win.setMinimumSize(min.width, min.height)
+    win.setMaximumSize(max.width, max.height)
   }
 
   // ------------------------------------------------------- secondary windows

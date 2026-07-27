@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { WINDOW_WIDTH, clampDeviceScale } from '@shared/types'
+import { clampDeviceScale } from '@shared/types'
 import { IS_MAC } from '@/platform'
 
 const SCALE_KEYS = IS_MAC ? '⌘+ / ⌘− / ⌘0' : 'Ctrl+ / Ctrl− / Ctrl+0'
@@ -7,6 +7,8 @@ const SCALE_KEYS = IS_MAC ? '⌘+ / ⌘− / ⌘0' : 'Ctrl+ / Ctrl− / Ctrl+0'
 interface ResizeGripProps {
   /** The scale the device is drawn at right now. */
   scale: number
+  /** Window width at scale 1 for the view on screen — compact has its own. */
+  baseWidth: number
 }
 
 /**
@@ -20,7 +22,7 @@ interface ResizeGripProps {
  * it reads screen coordinates (unaffected by the page zoom that the resize
  * applies) and asks main for the matching scale.
  */
-export function ResizeGrip({ scale }: ResizeGripProps): React.ReactElement {
+export function ResizeGrip({ scale, baseWidth }: ResizeGripProps): React.ReactElement {
   const scaleRef = useRef(scale)
   scaleRef.current = scale
 
@@ -29,7 +31,7 @@ export function ResizeGrip({ scale }: ResizeGripProps): React.ReactElement {
     event.preventDefault()
 
     const startX = event.screenX
-    const startWidth = WINDOW_WIDTH * scaleRef.current
+    const startWidth = baseWidth * scaleRef.current
     let frame = 0
     let pending = scaleRef.current
 
@@ -39,7 +41,7 @@ export function ResizeGrip({ scale }: ResizeGripProps): React.ReactElement {
     }
 
     const onMove = (move: PointerEvent): void => {
-      pending = clampDeviceScale((startWidth + (move.screenX - startX)) / WINDOW_WIDTH)
+      pending = clampDeviceScale((startWidth + (move.screenX - startX)) / baseWidth)
       // One resize per frame: every call crosses to main and moves the window.
       if (!frame) frame = requestAnimationFrame(apply)
     }

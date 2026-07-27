@@ -127,6 +127,11 @@ export interface WindowState {
   pinned: boolean
   expanded: boolean
   /**
+   * Strips the device down to the countdown and the transport keys. `expanded`
+   * is left alone while it is on, so leaving compact restores the earlier view.
+   */
+  compact: boolean
+  /**
    * Uniform zoom applied to the whole device, 1 = the design size. The window
    * keeps its aspect ratio, so one number describes the size completely.
    */
@@ -140,9 +145,28 @@ export const DEVICE_COLLAPSED_HEIGHT = 230
 export const DEVICE_EXPANDED_HEIGHT = 490
 export const SHADOW_PAD = 14
 
+/** Compact artwork size at scale 1 — one row: screen, then the transport keys. */
+export const DEVICE_COMPACT_WIDTH = 320
+export const DEVICE_COMPACT_HEIGHT = 92
+
 export const WINDOW_WIDTH = DEVICE_WIDTH + SHADOW_PAD * 2
 export const COLLAPSED_HEIGHT = DEVICE_COLLAPSED_HEIGHT + SHADOW_PAD * 2
 export const EXPANDED_HEIGHT = DEVICE_EXPANDED_HEIGHT + SHADOW_PAD * 2
+export const COMPACT_WIDTH = DEVICE_COMPACT_WIDTH + SHADOW_PAD * 2
+export const COMPACT_HEIGHT = DEVICE_COMPACT_HEIGHT + SHADOW_PAD * 2
+
+/**
+ * Window size in design pixels for a view, before `scale` is applied. Compact
+ * has a width of its own, so everything that converts between a pixel width and
+ * a scale — main and the resize grip alike — has to go through this.
+ */
+export function baseWindowSize(view: {
+  compact: boolean
+  expanded: boolean
+}): { width: number; height: number } {
+  if (view.compact) return { width: COMPACT_WIDTH, height: COMPACT_HEIGHT }
+  return { width: WINDOW_WIDTH, height: view.expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT }
+}
 
 /** Bounds for `WindowState.scale`, shared so main and renderer clamp alike. */
 export const MIN_DEVICE_SCALE = 0.7
