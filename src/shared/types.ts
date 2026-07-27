@@ -9,6 +9,15 @@ export type StatusId =
 
 export type TimerMode = 'focus' | 'break'
 
+/** What the menu bar prints next to the tray icon. */
+export type MenuBarText =
+  /** Icon only. */
+  | 'off'
+  /** The countdown, and only while a session runs. */
+  | 'timer'
+  /** The current status, replaced by the running session. */
+  | 'status'
+
 export type TimerPhase = 'idle' | 'running' | 'paused' | 'completed'
 
 export interface TimerState {
@@ -95,6 +104,7 @@ export interface Settings {
   hideOnBlur: boolean
   defaultTitle: string
   calendarSource: CalendarSource
+  menuBarText: MenuBarText
 }
 
 export interface WindowState {

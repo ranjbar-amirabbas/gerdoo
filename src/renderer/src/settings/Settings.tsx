@@ -1,6 +1,18 @@
 import { SEMANTIC_COLORS } from '@shared/status'
-import type { CalendarAccess, Settings as SettingsShape } from '@shared/types'
+import type { CalendarAccess, MenuBarText, Settings as SettingsShape } from '@shared/types'
 import { useSnapshot } from '@/hooks/useSnapshot'
+
+const MENU_BAR_TEXT_LABEL: Record<MenuBarText, string> = {
+  status: 'Status',
+  timer: 'Timer',
+  off: 'Icon only'
+}
+
+const MENU_BAR_TEXT_HINT: Record<MenuBarText, string> = {
+  status: 'Shows your status, and the countdown while a session runs.',
+  timer: 'Shows the countdown only while a session runs.',
+  off: 'Just the menu bar icon.'
+}
 
 const CALENDAR_ACCESS_HINT: Record<CalendarAccess, string> = {
   authorized: 'Reading events from macOS Calendar.',
@@ -207,6 +219,27 @@ export function Settings(): React.ReactElement {
 
         <section className="section">
           <h2 className="section__title">System</h2>
+
+          <div className="row">
+            <div className="row__text">
+              <span className="row__title">Menu bar</span>
+              <span className="row__hint">{MENU_BAR_TEXT_HINT[settings.menuBarText]}</span>
+            </div>
+            <div className="control">
+              <div className="segmented" role="group" aria-label="Menu bar">
+                {(['status', 'timer', 'off'] as const).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    data-active={settings.menuBarText === option ? 'true' : undefined}
+                    onClick={() => update({ menuBarText: option })}
+                  >
+                    {MENU_BAR_TEXT_LABEL[option]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           <div className="row">
             <div className="row__text">

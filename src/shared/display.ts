@@ -170,3 +170,35 @@ export function deriveLedContent(snapshot: AppSnapshot, now: number): LedContent
 export function colorsFor(color: SemanticColor) {
   return SEMANTIC_COLORS[color]
 }
+
+/** LED labels are shouty by design; the menu bar is not. `ON CALL` → `On Call`. */
+function titleCase(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/(^|[\s\-/])([a-z0-9])/g, (_match, lead: string, char: string) => lead + char.toUpperCase())
+}
+
+/** Menu bar titles compete with every other app for the notch. */
+const MENU_BAR_MAX = 22
+
+/**
+ * What the tray prints beside its icon. Derived from `deriveLedContent()` so the
+ * menu bar can never claim a different state than the panel.
+ */
+export function deriveMenuBarTitle(snapshot: AppSnapshot, now: number): string {
+  const mode = snapshot.settings.menuBarText
+  if (mode === 'off') return ''
+
+  const { timer } = snapshot
+  const running = timer.phase === 'running'
+  const active = running || timer.phase === 'paused'
+  if (mode === 'timer') return running ? formatDuration(remainingMs(timer, now)) : ''
+
+  const content = deriveLedContent(snapshot, now)
+  const custom = !active && snapshot.status.id === 'custom' && snapshot.status.customLabel.trim()
+  // A custom status is the user's own words — keep their capitalisation.
+  const label = custom ? custom : titleCase(content.label)
+  // Idle statuses show the wall clock on the panel — the menu bar already has one.
+  const title = active ? `${label} ${formatDuration(remainingMs(timer, now))}` : label
+  return title.length > MENU_BAR_MAX ? `${title.slice(0, MENU_BAR_MAX - 1).trim()}…` : title
+}

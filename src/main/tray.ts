@@ -1,8 +1,8 @@
 import { Menu, Tray, app, nativeImage } from 'electron'
 import { join } from 'node:path'
 import { STATUSES, STATUS_ORDER } from '@shared/status'
-import { formatDuration } from '@shared/display'
-import type { AppSnapshot, StatusId } from '@shared/types'
+import { deriveLedContent, deriveMenuBarTitle } from '@shared/display'
+import type { AppSnapshot, StatusId, TimerState } from '@shared/types'
 
 export interface TrayActions {
   showFocusBar(trayBounds?: Electron.Rectangle): void
@@ -19,6 +19,8 @@ export interface TrayActions {
 
 export class TrayController {
   private tray: Tray | null = null
+  /** Last snapshot seen, so a tick can refresh the title without a full publish. */
+  private snapshot: AppSnapshot | null = null
 
   constructor(private readonly actions: TrayActions) {}
 
@@ -39,6 +41,7 @@ export class TrayController {
   /** Rebuilt on every state change so checkmarks and labels never go stale. */
   update(snapshot: AppSnapshot): void {
     if (!this.tray) return
+    this.snapshot = snapshot
     const { timer, status, window } = snapshot
     const running = timer.phase === 'running'
     const paused = timer.phase === 'paused'
@@ -87,17 +90,32 @@ export class TrayController {
     ])
 
     this.tray.setContextMenu(menu)
-    this.updateCountdown(timer)
+    this.render()
   }
 
   /** Cheap per-second refresh: title only, no menu rebuild. */
-  updateCountdown(timer: AppSnapshot['timer']): void {
-    if (!this.tray) return
-    this.tray.setTitle(timer.phase === 'running' ? ` ${formatDuration(timer.remainingMs)}` : '')
+  updateTimer(timer: TimerState): void {
+    if (!this.snapshot) return
+    this.snapshot = { ...this.snapshot, timer, now: Date.now() }
+    this.render()
+  }
+
+  /** Title and tooltip, both derived from the panel's own content. */
+  private render(): void {
+    if (!this.tray || !this.snapshot) return
+    const now = Date.now()
+    const title = deriveMenuBarTitle(this.snapshot, now)
+    // The leading space keeps the text off the icon.
+    this.tray.setTitle(title ? ` ${title}` : '')
+
+    const content = deriveLedContent(this.snapshot, now)
+    const line = [content.label, content.big].filter(Boolean).join(' ')
+    this.tray.setToolTip(content.sub ? `${line} — ${content.sub}` : line)
   }
 
   dispose(): void {
     this.tray?.destroy()
     this.tray = null
+    this.snapshot = null
   }
 }

@@ -46,7 +46,8 @@ export const DEFAULT_SETTINGS: Settings = {
   launchAtLogin: false,
   hideOnBlur: true,
   defaultTitle: 'DEEP WORK',
-  calendarSource: 'system'
+  calendarSource: 'system',
+  menuBarText: 'status'
 }
 
 const DEFAULT_STATE: PersistedState = {
