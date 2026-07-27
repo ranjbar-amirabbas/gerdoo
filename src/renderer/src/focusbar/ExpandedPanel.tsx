@@ -11,7 +11,7 @@ interface ExpandedPanelProps {
 
 export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.ReactElement {
   const { settings, status, calendar, timer, window: windowState } = snapshot
-  const palette = paletteFor(settings.accentColor)
+  const palette = paletteFor(settings.accentColor, settings.modeColors)
   const suggestion = suggestFocus(calendar.next, now, settings.presets)
   const sessionActive = timer.phase === 'running' || timer.phase === 'paused'
   // One switch for the whole focus → break → focus loop; Settings splits the two.

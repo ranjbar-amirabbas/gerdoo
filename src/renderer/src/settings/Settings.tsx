@@ -1,11 +1,20 @@
 import { useState } from 'react'
-import { Pipette } from 'lucide-react'
-import { ACCENT_PRESETS, normalizeAccent, paletteFor } from '@shared/palette'
+import { Pipette, X } from 'lucide-react'
+import {
+  ACCENT_PRESETS,
+  MODE_LABELS,
+  MODE_ORDER,
+  MODE_TITLES,
+  normalizeAccent,
+  paletteFor,
+  type Palette
+} from '@shared/palette'
 import type {
   AppSnapshot,
   CalendarAccess,
   CalendarSource,
   MenuBarText,
+  ModeColors,
   Settings as SettingsShape
 } from '@shared/types'
 import { useSnapshot } from '@/hooks/useSnapshot'
@@ -150,6 +159,61 @@ function AccentPicker({
 }
 
 /**
+ * One swatch per mode. Each shows the colour the panel is lighting right now —
+ * the accent's shade of it until the mode is given one of its own, at which
+ * point a clear button appears to hand it back to the accent.
+ */
+function ModeColorPicker({
+  palette,
+  value,
+  onChange
+}: {
+  palette: Palette
+  value: ModeColors
+  onChange(next: ModeColors): void
+}): React.ReactElement {
+  return (
+    <div className="modes">
+      {MODE_ORDER.map((mode) => {
+        const own = value[mode]
+        const color = palette[mode].active
+        return (
+          <div className="mode" key={mode} data-custom={own ? 'true' : undefined}>
+            <label className="mode__swatch" style={{ background: color }} title={MODE_TITLES[mode]}>
+              <input
+                type="color"
+                aria-label={`${MODE_TITLES[mode]} colour`}
+                value={color}
+                onChange={(event) => {
+                  const next = normalizeAccent(event.target.value)
+                  if (next) onChange({ ...value, [mode]: next })
+                }}
+              />
+            </label>
+            <span className="mode__label">{MODE_LABELS[mode]}</span>
+            {own ? (
+              <button
+                type="button"
+                className="mode__clear"
+                title="Follow the accent colour"
+                aria-label={`Reset ${MODE_TITLES[mode]} colour`}
+                onClick={() => {
+                  const next = { ...value }
+                  delete next[mode]
+                  onChange(next)
+                }}
+              >
+                <X size={10} strokeWidth={2.6} aria-hidden="true" />
+              </button>
+            ) : null}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/**
  * The feed URL, held locally while it is being typed.
  *
  * Committing on every keystroke would send Gerdoo off to fetch half-written
@@ -204,12 +268,10 @@ export function Settings(): React.ReactElement {
 
   const motionValue: 'system' | 'on' | 'off' =
     settings.reduceMotion === null ? 'system' : settings.reduceMotion ? 'on' : 'off'
+  const palette = paletteFor(settings.accentColor, settings.modeColors)
 
   return (
-    <div
-      className="app"
-      style={{ '--accent': paletteFor(settings.accentColor).focus.accent } as React.CSSProperties}
-    >
+    <div className="app" style={{ '--accent': palette.focus.accent } as React.CSSProperties}>
       <header className="app__titlebar">
         <span className="app__title">Settings</span>
       </header>
@@ -328,6 +390,23 @@ export function Settings(): React.ReactElement {
               <AccentPicker
                 value={settings.accentColor}
                 onChange={(accentColor) => update({ accentColor })}
+              />
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="row__text">
+              <span className="row__title">Mode colours</span>
+              <span className="row__hint">
+                Give a mode a colour of its own. Every swatch shows what the panel
+                lights today; × hands one back to the accent.
+              </span>
+            </div>
+            <div className="control">
+              <ModeColorPicker
+                palette={palette}
+                value={settings.modeColors}
+                onChange={(modeColors) => update({ modeColors })}
               />
             </div>
           </div>

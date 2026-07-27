@@ -563,3 +563,80 @@ html[data-platform='linux'] .app__titlebar {
   padding: 0;
   cursor: default;
 }
+
+/* ---------------------------------------------------------- mode colours */
+
+/* Two columns of the same 236px the accent swatches get, so both rows line up. */
+.modes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 10px;
+  width: 236px;
+}
+
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.mode__swatch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+  cursor: default;
+  transition: box-shadow var(--motion-fast) var(--ease);
+}
+
+/* A mode carrying its own colour wears the ring the active accent swatch does. */
+.mode[data-custom='true'] .mode__swatch {
+  box-shadow:
+    0 0 0 1.5px #0b0d10,
+    0 0 0 3px rgba(255, 255, 255, 0.32);
+}
+
+.mode__swatch input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  cursor: default;
+}
+
+.mode__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mode__clear {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-faint);
+  cursor: default;
+  transition:
+    background var(--motion-fast) var(--ease),
+    color var(--motion-fast) var(--ease);
+}
+
+.mode__clear:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text);
+}
