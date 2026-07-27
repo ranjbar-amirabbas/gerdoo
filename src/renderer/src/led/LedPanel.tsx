@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { LedContent } from '@shared/display'
 import { colorsFor } from '@shared/display'
+import { Mascot } from '@/components/Mascot'
 import { LedEngine, type LedLineSpec, type LedTransition } from './engine'
 
 export const LED_COLS = 140
@@ -88,6 +89,9 @@ export function LedPanel({ content, brightness, reduceMotion }: LedPanelProps): 
 
   return (
     <div className="led" ref={hostRef}>
+      {/* Behind the canvas: the dot grid is drawn on a transparent canvas, so
+          the dog reads through it like a backlit panel. */}
+      <Mascot />
       <canvas className="led__canvas" ref={canvasRef} />
       <div className="led__glass" aria-hidden="true" />
       <div className="led__scanlines" aria-hidden="true" />

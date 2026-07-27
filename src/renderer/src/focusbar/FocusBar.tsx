@@ -3,7 +3,6 @@ import { ChevronDown, ChevronUp, Pin } from 'lucide-react'
 import { deriveLedContent } from '@shared/display'
 import { SEMANTIC_COLORS } from '@shared/status'
 import { LedPanel } from '@/led/LedPanel'
-import { Mascot } from '@/components/Mascot'
 import { useNow } from '@/hooks/useNow'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useSnapshot } from '@/hooks/useSnapshot'
@@ -51,8 +50,6 @@ export function FocusBar(): React.ReactElement {
         style={{ '--accent': palette.accent, '--glow': palette.glow } as React.CSSProperties}
         aria-label="Stitch Focus Bar"
       >
-        <Mascot />
-
         <header className="device__grip drag">
           <span className="brand">
             <span className="brand__mark" aria-hidden="true" />
