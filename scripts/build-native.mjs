@@ -1,5 +1,5 @@
 /**
- * Compiles the EventKit helper into `resources/stitch-calendar`.
+ * Compiles the EventKit helper into `resources/gerdoo-calendar`.
  *
  * The Info.plist is linked into the binary (TCC reads the usage strings from
  * there — a CLI tool has no bundle to read them from), and the result is
@@ -11,9 +11,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const source = join(root, 'native', 'StitchCalendar.swift')
+const source = join(root, 'native', 'GerdooCalendar.swift')
 const plist = join(root, 'native', 'Info.plist')
-const output = join(root, 'resources', 'stitch-calendar')
+const output = join(root, 'resources', 'gerdoo-calendar')
 
 if (process.platform !== 'darwin') {
   console.log('skipping the calendar helper: macOS only')

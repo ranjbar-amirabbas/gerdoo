@@ -1,8 +1,8 @@
-import type { StitchApi } from '@shared/ipc'
+import type { GerdooApi } from '@shared/ipc'
 
 declare global {
   interface Window {
-    stitch: StitchApi
+    gerdoo: GerdooApi
   }
 }
 

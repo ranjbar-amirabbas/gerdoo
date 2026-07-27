@@ -5,14 +5,14 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleIdentifier</key>
-  <string>com.stitch.focusbar.calendar-helper</string>
+  <string>com.gerdoo.focusbar.calendar-helper</string>
   <key>CFBundleName</key>
-  <string>Stitch Calendar Helper</string>
+  <string>Gerdoo Calendar Helper</string>
   <key>CFBundleShortVersionString</key>
   <string>1.0.0</string>
   <key>NSCalendarsUsageDescription</key>
-  <string>Stitch shows your current and next calendar events on the Focus Bar.</string>
+  <string>Gerdoo shows your current and next calendar events on the Focus Bar.</string>
   <key>NSCalendarsFullAccessUsageDescription</key>
-  <string>Stitch shows your current and next calendar events on the Focus Bar.</string>
+  <string>Gerdoo shows your current and next calendar events on the Focus Bar.</string>
 </dict>
 </plist>

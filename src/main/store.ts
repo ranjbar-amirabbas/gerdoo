@@ -69,7 +69,7 @@ export class Store {
   private state: PersistedState
   private writeTimer: NodeJS.Timeout | null = null
 
-  constructor(fileName = 'stitch-state.json') {
+  constructor(fileName = 'gerdoo-state.json') {
     this.file = join(app.getPath('userData'), fileName)
     this.state = this.load()
   }
@@ -87,7 +87,7 @@ export class Store {
         sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-500) : []
       }
     } catch (error) {
-      console.error('[stitch] state file unreadable, starting fresh:', error)
+      console.error('[gerdoo] state file unreadable, starting fresh:', error)
       return structuredClone(DEFAULT_STATE)
     }
   }
@@ -129,7 +129,7 @@ export class Store {
       writeFileSync(tmp, JSON.stringify(this.state, null, 2), 'utf8')
       renameSync(tmp, this.file)
     } catch (error) {
-      console.error('[stitch] failed to persist state:', error)
+      console.error('[gerdoo] failed to persist state:', error)
     }
   }
 }

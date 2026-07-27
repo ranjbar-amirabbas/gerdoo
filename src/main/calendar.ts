@@ -84,8 +84,8 @@ export const CALENDAR_WINDOW_DAYS = 7
 /**
  * Real macOS Calendar data, read through the bundled EventKit helper.
  *
- * Electron has no EventKit binding, so `native/StitchCalendar.swift` is compiled
- * to `resources/stitch-calendar` and spawned per refresh. The helper prints one
+ * Electron has no EventKit binding, so `native/GerdooCalendar.swift` is compiled
+ * to `resources/gerdoo-calendar` and spawned per refresh. The helper prints one
  * JSON object and always exits 0 — `status` distinguishes "no events" from
  * "not allowed", which is what the UI needs to say something useful.
  */
@@ -94,7 +94,7 @@ export class EventKitCalendarProvider implements CalendarProvider {
 
   constructor(private readonly days = CALENDAR_WINDOW_DAYS) {
     const base = app.isPackaged ? process.resourcesPath : join(__dirname, '..', '..', 'resources')
-    this.binary = join(base, 'stitch-calendar')
+    this.binary = join(base, 'gerdoo-calendar')
   }
 
   isAvailable(): boolean {
@@ -112,7 +112,7 @@ export class EventKitCalendarProvider implements CalendarProvider {
     try {
       raw = await this.run(args, options.mayPrompt ? PROMPT_TIMEOUT_MS : HELPER_TIMEOUT_MS)
     } catch (error) {
-      console.error('[stitch] calendar helper failed:', error)
+      console.error('[gerdoo] calendar helper failed:', error)
       return { access: 'error', events: [] }
     }
 
@@ -120,13 +120,13 @@ export class EventKitCalendarProvider implements CalendarProvider {
     try {
       parsed = JSON.parse(raw) as HelperOutput
     } catch {
-      console.error('[stitch] calendar helper returned unparseable output')
+      console.error('[gerdoo] calendar helper returned unparseable output')
       return { access: 'error', events: [] }
     }
 
     const access = this.toAccess(parsed.status)
     if (access !== 'authorized') {
-      if (parsed.message) console.error(`[stitch] calendar helper: ${parsed.message}`)
+      if (parsed.message) console.error(`[gerdoo] calendar helper: ${parsed.message}`)
       return { access, events: [] }
     }
 
@@ -252,7 +252,7 @@ export class CalendarService extends EventEmitter<CalendarEvents> {
 
       this.applyEvents(result.events, result.access, now, result.access === 'authorized')
     } catch (error) {
-      console.error('[stitch] calendar refresh failed:', error)
+      console.error('[gerdoo] calendar refresh failed:', error)
     } finally {
       this.refreshing = false
     }

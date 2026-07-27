@@ -5,7 +5,7 @@ import { useSnapshot } from '@/hooks/useSnapshot'
 const CALENDAR_ACCESS_HINT: Record<CalendarAccess, string> = {
   authorized: 'Reading events from macOS Calendar.',
   notDetermined: 'macOS has not been asked for access yet.',
-  denied: 'Access was refused — turn Stitch on under Privacy & Security → Calendars.',
+  denied: 'Access was refused — turn Gerdoo on under Privacy & Security → Calendars.',
   restricted: 'Calendar access is blocked by a system policy.',
   unavailable: 'The calendar helper is missing. Run `npm run build:native`.',
   error: 'The calendar helper could not be read. Showing sample events.',
@@ -39,7 +39,7 @@ export function Settings(): React.ReactElement {
 
   const settings = snapshot.settings
   const update = (patch: Partial<SettingsShape>): void => {
-    void window.stitch.settings.update(patch)
+    void window.gerdoo.settings.update(patch)
   }
 
   const motionValue: 'system' | 'on' | 'off' =
@@ -249,7 +249,7 @@ export function Settings(): React.ReactElement {
               <span className="row__hint">
                 {snapshot.calendar.access === 'authorized'
                   ? `${snapshot.calendar.events.length} event${snapshot.calendar.events.length === 1 ? '' : 's'} loaded`
-                  : 'Stitch reads events only to show what is current and next.'}
+                  : 'Gerdoo reads events only to show what is current and next.'}
               </span>
             </div>
             <div className="control">
@@ -258,7 +258,7 @@ export function Settings(): React.ReactElement {
                 <button
                   type="button"
                   className="button"
-                  onClick={() => void window.stitch.calendar.openPrivacySettings()}
+                  onClick={() => void window.gerdoo.calendar.openPrivacySettings()}
                 >
                   Open Privacy Settings
                 </button>
@@ -266,7 +266,7 @@ export function Settings(): React.ReactElement {
                 <button
                   type="button"
                   className="button"
-                  onClick={() => void window.stitch.calendar.refresh()}
+                  onClick={() => void window.gerdoo.calendar.refresh()}
                 >
                   Refresh
                 </button>
@@ -274,7 +274,7 @@ export function Settings(): React.ReactElement {
                 <button
                   type="button"
                   className="button button--primary"
-                  onClick={() => void window.stitch.calendar.requestAccess()}
+                  onClick={() => void window.gerdoo.calendar.requestAccess()}
                 >
                   Grant access
                 </button>

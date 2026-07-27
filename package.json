@@ -1,9 +1,9 @@
 {
-  "name": "stitch",
+  "name": "gerdoo",
   "version": "1.0.0",
-  "description": "Stitch — a virtual focus device for the macOS menu bar",
+  "description": "Gerdoo — a virtual focus device for the macOS menu bar",
   "main": "./out/main/index.js",
-  "author": "Stitch",
+  "author": "Gerdoo",
   "license": "MIT",
   "type": "commonjs",
   "scripts": {

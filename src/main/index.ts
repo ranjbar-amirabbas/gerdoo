@@ -7,7 +7,7 @@ import { TimerService } from './timer'
 import { TrayController } from './tray'
 import { WindowManager } from './windows'
 
-class StitchApp {
+class GerdooApp {
   private readonly store = new Store()
   private readonly windows = new WindowManager(this.store)
   private readonly calendar = new CalendarService(
@@ -198,7 +198,7 @@ class StitchApp {
       if (app.getLoginItemSettings().openAtLogin === settings.launchAtLogin) return
       app.setLoginItemSettings({ openAtLogin: settings.launchAtLogin, openAsHidden: true })
     } catch (error) {
-      console.error('[stitch] could not update the login item:', error)
+      console.error('[gerdoo] could not update the login item:', error)
     }
   }
 
@@ -292,22 +292,22 @@ class StitchApp {
 }
 
 const singleInstance = app.requestSingleInstanceLock()
-let stitch: StitchApp | null = null
+let gerdoo: GerdooApp | null = null
 
 if (!singleInstance) {
   app.quit()
 } else {
-  app.on('second-instance', () => stitch?.showFocusBar())
+  app.on('second-instance', () => gerdoo?.showFocusBar())
 
   app.whenReady().then(() => {
     // Menu bar app: no Dock icon, no app switcher entry.
     app.dock?.hide()
-    app.setAppUserModelId('com.stitch.focusbar')
-    stitch = new StitchApp()
-    stitch.start()
+    app.setAppUserModelId('com.gerdoo.focusbar')
+    gerdoo = new GerdooApp()
+    gerdoo.start()
 
     app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) stitch?.showFocusBar()
+      if (BrowserWindow.getAllWindows().length === 0) gerdoo?.showFocusBar()
     })
   })
 
@@ -315,5 +315,5 @@ if (!singleInstance) {
     // Deliberately empty: closing windows must not quit a menu bar app.
   })
 
-  app.on('before-quit', () => stitch?.shutdown())
+  app.on('before-quit', () => gerdoo?.shutdown())
 }

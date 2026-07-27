@@ -3,5 +3,5 @@ out/
 dist/
 *.log
 .DS_Store
-resources/stitch-calendar
+resources/gerdoo-calendar
 *.tsbuildinfo
