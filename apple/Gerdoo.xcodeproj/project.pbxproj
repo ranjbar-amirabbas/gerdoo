@@ -1,0 +1,725 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA00000000000000000000N1 /* GerdooKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000M1 /* GerdooKit */; };
+		AA00000000000000000000N2 /* GerdooKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000M2 /* GerdooKit */; };
+		AA00000000000000000000N3 /* GerdooKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000M3 /* GerdooKit */; };
+		AA00000000000000000000N4 /* GerdooKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000M4 /* GerdooKit */; };
+		AA00000000000000000000P1 /* GerdooWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000C3 /* GerdooWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA00000000000000000000P2 /* GerdooWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000C2 /* GerdooWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA00000000000000000000P3 /* GerdooWatchWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000C4 /* GerdooWatchWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA00000000000000000000K1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA00000000000000000000A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA00000000000000000000B3;
+			remoteInfo = GerdooWidgets;
+		};
+		AA00000000000000000000K2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA00000000000000000000A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA00000000000000000000B2;
+			remoteInfo = GerdooWatch;
+		};
+		AA00000000000000000000K3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA00000000000000000000A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA00000000000000000000B4;
+			remoteInfo = GerdooWatchWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA00000000000000000000I1 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AA00000000000000000000P1 /* GerdooWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000I2 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				AA00000000000000000000P2 /* GerdooWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000I3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AA00000000000000000000P3 /* GerdooWatchWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		AA00000000000000000000C1 /* Gerdoo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gerdoo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00000000000000000000C2 /* GerdooWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GerdooWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00000000000000000000C3 /* GerdooWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GerdooWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00000000000000000000C4 /* GerdooWatchWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GerdooWatchWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00000000000000000000Q1 /* Gerdoo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Gerdoo-Info.plist"; sourceTree = "<group>"; };
+		AA00000000000000000000Q2 /* Gerdoo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gerdoo.entitlements; sourceTree = "<group>"; };
+		AA00000000000000000000Q3 /* GerdooWatch-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GerdooWatch-Info.plist"; sourceTree = "<group>"; };
+		AA00000000000000000000Q4 /* GerdooWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GerdooWatch.entitlements; sourceTree = "<group>"; };
+		AA00000000000000000000Q5 /* GerdooWidgets-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GerdooWidgets-Info.plist"; sourceTree = "<group>"; };
+		AA00000000000000000000Q6 /* GerdooWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GerdooWidgets.entitlements; sourceTree = "<group>"; };
+		AA00000000000000000000Q7 /* GerdooWatchWidgets-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GerdooWatchWidgets-Info.plist"; sourceTree = "<group>"; };
+		AA00000000000000000000Q8 /* GerdooWatchWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GerdooWatchWidgets.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		AA00000000000000000000D1 /* Gerdoo */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Gerdoo;
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000D2 /* GerdooWatch */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GerdooWatch;
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000D3 /* GerdooWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GerdooWidgets;
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000D4 /* GerdooWatchWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GerdooWatchWidgets;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA00000000000000000000G1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000N1 /* GerdooKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000G2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000N2 /* GerdooKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000G3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000N3 /* GerdooKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000G4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA00000000000000000000N4 /* GerdooKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA00000000000000000000A2 = {
+			isa = PBXGroup;
+			children = (
+				AA00000000000000000000D1 /* Gerdoo */,
+				AA00000000000000000000D2 /* GerdooWatch */,
+				AA00000000000000000000D3 /* GerdooWidgets */,
+				AA00000000000000000000D4 /* GerdooWatchWidgets */,
+				AA00000000000000000000Q0 /* Config */,
+				AA00000000000000000000A3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000A3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000000000000000C1 /* Gerdoo.app */,
+				AA00000000000000000000C2 /* GerdooWatch.app */,
+				AA00000000000000000000C3 /* GerdooWidgets.appex */,
+				AA00000000000000000000C4 /* GerdooWatchWidgets.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000Q0 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000000000000000000Q1 /* Gerdoo-Info.plist */,
+				AA00000000000000000000Q2 /* Gerdoo.entitlements */,
+				AA00000000000000000000Q3 /* GerdooWatch-Info.plist */,
+				AA00000000000000000000Q4 /* GerdooWatch.entitlements */,
+				AA00000000000000000000Q5 /* GerdooWidgets-Info.plist */,
+				AA00000000000000000000Q6 /* GerdooWidgets.entitlements */,
+				AA00000000000000000000Q7 /* GerdooWatchWidgets-Info.plist */,
+				AA00000000000000000000Q8 /* GerdooWatchWidgets.entitlements */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA00000000000000000000B1 /* Gerdoo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00000000000000000000E1 /* Build configuration list for PBXNativeTarget "Gerdoo" */;
+			buildPhases = (
+				AA00000000000000000000F1 /* Sources */,
+				AA00000000000000000000G1 /* Frameworks */,
+				AA00000000000000000000H1 /* Resources */,
+				AA00000000000000000000I1 /* Embed Foundation Extensions */,
+				AA00000000000000000000I2 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA00000000000000000000J1 /* PBXTargetDependency */,
+				AA00000000000000000000J2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AA00000000000000000000D1 /* Gerdoo */,
+			);
+			name = Gerdoo;
+			packageProductDependencies = (
+				AA00000000000000000000M1 /* GerdooKit */,
+			);
+			productName = Gerdoo;
+			productReference = AA00000000000000000000C1 /* Gerdoo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AA00000000000000000000B2 /* GerdooWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00000000000000000000E2 /* Build configuration list for PBXNativeTarget "GerdooWatch" */;
+			buildPhases = (
+				AA00000000000000000000F2 /* Sources */,
+				AA00000000000000000000G2 /* Frameworks */,
+				AA00000000000000000000H2 /* Resources */,
+				AA00000000000000000000I3 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA00000000000000000000J3 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AA00000000000000000000D2 /* GerdooWatch */,
+			);
+			name = GerdooWatch;
+			packageProductDependencies = (
+				AA00000000000000000000M2 /* GerdooKit */,
+			);
+			productName = GerdooWatch;
+			productReference = AA00000000000000000000C2 /* GerdooWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AA00000000000000000000B3 /* GerdooWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00000000000000000000E3 /* Build configuration list for PBXNativeTarget "GerdooWidgets" */;
+			buildPhases = (
+				AA00000000000000000000F3 /* Sources */,
+				AA00000000000000000000G3 /* Frameworks */,
+				AA00000000000000000000H3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AA00000000000000000000D3 /* GerdooWidgets */,
+			);
+			name = GerdooWidgets;
+			packageProductDependencies = (
+				AA00000000000000000000M3 /* GerdooKit */,
+			);
+			productName = GerdooWidgets;
+			productReference = AA00000000000000000000C3 /* GerdooWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		AA00000000000000000000B4 /* GerdooWatchWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00000000000000000000E4 /* Build configuration list for PBXNativeTarget "GerdooWatchWidgets" */;
+			buildPhases = (
+				AA00000000000000000000F4 /* Sources */,
+				AA00000000000000000000G4 /* Frameworks */,
+				AA00000000000000000000H4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AA00000000000000000000D4 /* GerdooWatchWidgets */,
+			);
+			name = GerdooWatchWidgets;
+			packageProductDependencies = (
+				AA00000000000000000000M4 /* GerdooKit */,
+			);
+			productName = GerdooWatchWidgets;
+			productReference = AA00000000000000000000C4 /* GerdooWatchWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA00000000000000000000A1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					AA00000000000000000000B1 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					AA00000000000000000000B2 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					AA00000000000000000000B3 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					AA00000000000000000000B4 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = AA00000000000000000000A4 /* Build configuration list for PBXProject "Gerdoo" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA00000000000000000000A2;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AA00000000000000000000L1 /* XCLocalSwiftPackageReference "GerdooKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = AA00000000000000000000A3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA00000000000000000000B1 /* Gerdoo */,
+				AA00000000000000000000B2 /* GerdooWatch */,
+				AA00000000000000000000B3 /* GerdooWidgets */,
+				AA00000000000000000000B4 /* GerdooWatchWidgets */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA00000000000000000000H1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000H2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000H3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000H4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA00000000000000000000F1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000F2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA00000000000000000000F4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA00000000000000000000J1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA00000000000000000000B3 /* GerdooWidgets */;
+			targetProxy = AA00000000000000000000K1 /* PBXContainerItemProxy */;
+		};
+		AA00000000000000000000J2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA00000000000000000000B2 /* GerdooWatch */;
+			targetProxy = AA00000000000000000000K2 /* PBXContainerItemProxy */;
+		};
+		AA00000000000000000000J3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA00000000000000000000B4 /* GerdooWatchWidgets */;
+			targetProxy = AA00000000000000000000K3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AA00000000000000000000A5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.6.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		AA00000000000000000000A6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.6.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		AA0000000000000000000E11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Config/Gerdoo-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.amirabbasranjbar.gerdoo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000E12 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Config/Gerdoo-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.amirabbasranjbar.gerdoo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		AA0000000000000000000E21 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Config/GerdooWatch-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.amirabbasranjbar.gerdoo.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000E22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Config/GerdooWatch-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.amirabbasranjbar.gerdoo.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		AA0000000000000000000E31 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Config/GerdooWidgets-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.amirabbasranjbar.gerdoo.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA0000000000000000000E32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Config/GerdooWidgets-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.amirabbasranjbar.gerdoo.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		AA0000000000000000000E41 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Config/GerdooWatchWidgets-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.amirabbasranjbar.gerdoo.watchkitapp.complications;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000E42 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Config/GerdooWatchWidgets-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.amirabbasranjbar.gerdoo.watchkitapp.complications;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA00000000000000000000A4 /* Build configuration list for PBXProject "Gerdoo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA00000000000000000000A5 /* Debug */,
+				AA00000000000000000000A6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA00000000000000000000E1 /* Build configuration list for PBXNativeTarget "Gerdoo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000E11 /* Debug */,
+				AA0000000000000000000E12 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA00000000000000000000E2 /* Build configuration list for PBXNativeTarget "GerdooWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000E21 /* Debug */,
+				AA0000000000000000000E22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA00000000000000000000E3 /* Build configuration list for PBXNativeTarget "GerdooWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000E31 /* Debug */,
+				AA0000000000000000000E32 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA00000000000000000000E4 /* Build configuration list for PBXNativeTarget "GerdooWatchWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000E41 /* Debug */,
+				AA0000000000000000000E42 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		AA00000000000000000000L1 /* XCLocalSwiftPackageReference "GerdooKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = GerdooKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA00000000000000000000M1 /* GerdooKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GerdooKit;
+		};
+		AA00000000000000000000M2 /* GerdooKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GerdooKit;
+		};
+		AA00000000000000000000M3 /* GerdooKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GerdooKit;
+		};
+		AA00000000000000000000M4 /* GerdooKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GerdooKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = AA00000000000000000000A1 /* Project object */;
+}

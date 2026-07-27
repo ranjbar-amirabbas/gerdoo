@@ -19,6 +19,12 @@ next.
 | Calendar events from the **system calendar** | ✅ EventKit | ✖ macOS only |
 | Launch at login, notifications, sounds | ✅ | ✅ |
 
+There is also a native **iPhone and Apple Watch** app in [`apple/`](apple/) —
+the same device, the same panel, the same statuses, sharing this repo's logic
+through a Swift port rather than a second implementation. See
+[apple/README.md](apple/README.md). It is standalone: the phone and the watch
+sync to each other, not to the desktop app.
+
 ## Installing a release
 
 Both are on [Releases](https://github.com/ranjbar-amirabbas/gerdoo/releases).
@@ -78,7 +84,7 @@ to hide it (while unpinned). Right-click opens the menu.
 | `npm run dist` | Builds and packages for the machine you are on, into `dist/` |
 | `npm run dist:mac` | macOS arm64 DMG |
 | `npm run dist:win` | Windows NSIS installer (x64 + arm64) and an x64 portable exe |
-| `npm run icons` | Regenerates the tray images and app icons |
+| `npm run icons` | Regenerates the tray images and app icons, desktop and iOS/watchOS |
 | `npm run build:native` | Compiles the EventKit calendar helper (Swift, macOS only; a no-op elsewhere) |
 
 Each installer has to be built on its own platform: the macOS DMG needs
@@ -231,7 +237,9 @@ per DPI rather than scaling.
 
 `scripts/generate-icons.mjs` draws every one of them as raw pixels and encodes
 the PNG and ICO containers by hand — no image library, no binary art in the repo
-that cannot be regenerated. `npm run icons`.
+that cannot be regenerated. `npm run icons`. The same `drawAppIcon` fills the
+iOS and watchOS asset catalogues in `apple/`, so all four platforms carry one
+drawing rather than four exports of it.
 
 ### Window chrome
 
