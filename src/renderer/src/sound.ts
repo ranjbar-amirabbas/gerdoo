@@ -1,5 +1,8 @@
-/** Tiny WebAudio cues — no audio assets to ship, no autoplay policy trouble. */
+/** Tiny WebAudio cues, plus one sampled effect for focus <-> break switches. */
+import effectUrl from '@resources/effect.mp3'
+
 let context: AudioContext | null = null
+let effect: HTMLAudioElement | null = null
 
 function ensureContext(): AudioContext | null {
   if (typeof AudioContext === 'undefined') return null
@@ -21,7 +24,19 @@ function tone(ctx: AudioContext, frequency: number, startAt: number, duration: n
   osc.stop(startAt + duration + 0.02)
 }
 
+/** Restarts the clip if a second switch lands while it is still playing. */
+function playEffect(): void {
+  effect ??= new Audio(effectUrl)
+  effect.currentTime = 0
+  // Rejects only if the renderer has no audio output; nothing useful to do.
+  void effect.play().catch(() => {})
+}
+
 export function playCue(cue: string): void {
+  if (cue === 'mode') {
+    playEffect()
+    return
+  }
   const ctx = ensureContext()
   if (!ctx) return
   const t = ctx.currentTime + 0.01

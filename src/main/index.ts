@@ -59,6 +59,7 @@ class GerdooApp {
     // Ticks only refresh the menu bar title; renderers run their own clock.
     this.timer.on('tick', () => this.tray.updateTimer(this.timer.getState()))
     this.timer.on('complete', (record) => this.onSessionComplete(record.mode))
+    this.timer.on('modeChange', () => this.windows.playSound('mode'))
 
     this.calendar.on('change', () => this.publish())
     this.calendar.start()
@@ -113,12 +114,15 @@ class GerdooApp {
       request.mode === 'break'
         ? settings.breakMinutes
         : (settings.presets[settings.selectedPresetIndex] ?? 25)
+    const mode = request.mode ?? 'focus'
+    const previousMode = this.timer.getState().mode
     this.timer.start({
-      mode: request.mode ?? 'focus',
+      mode,
       minutes: request.minutes ?? fallbackMinutes,
       title: request.title ?? this.timer.getState().title ?? settings.defaultTitle
     })
-    this.windows.playSound('start')
+    // A mode switch already fired its own cue via the `modeChange` handler.
+    if (mode === previousMode) this.windows.playSound('start')
   }
 
   private stopTimer(): void {
@@ -145,7 +149,9 @@ class GerdooApp {
       actualMs: state.durationMs,
       completed: true
     })
-    this.windows.playSound('complete')
+    const autoBreak = mode === 'focus' && this.store.get().settings.autoStartBreak
+    // The mode-change cue below covers the hand-off, so don't stack two sounds.
+    if (!autoBreak) this.windows.playSound('complete')
 
     if (Notification.isSupported()) {
       new Notification({
@@ -156,7 +162,7 @@ class GerdooApp {
     }
 
     const { settings } = this.store.get()
-    if (mode === 'focus' && settings.autoStartBreak) {
+    if (autoBreak) {
       this.timer.start({ mode: 'break', minutes: settings.breakMinutes, title: 'BREAK' })
     }
     this.publish()

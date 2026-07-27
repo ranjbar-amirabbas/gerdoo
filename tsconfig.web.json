@@ -15,6 +15,7 @@
     "noEmit": true,
     "paths": {
       "@shared/*": ["./src/shared/*"],
+      "@resources/*": ["./resources/*"],
       "@/*": ["./src/renderer/src/*"]
     }
   }
