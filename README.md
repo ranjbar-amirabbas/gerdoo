@@ -106,9 +106,10 @@ means — and then runs it under whichever host it needs:
   there, so a failing suite would otherwise report success.
 
 What is covered is the part with somewhere to hide: the iCalendar reader
-(recurrence expansion, timezones, malformed feeds) and the feed provider
-(caching, and every way a URL can be wrong) against a throwaway localhost
-server. The Electron UI is not covered.
+(recurrence expansion, timezones, malformed feeds), the feed provider (caching,
+and every way a URL can be wrong) against a throwaway localhost server, and the
+calendar-driven status hand-off (`resolveAutoStatus`, which is pure for exactly
+this reason). The Electron UI is not covered.
 
 ## How it is put together
 
@@ -121,12 +122,13 @@ src/
     tray.ts      tray icon, dynamic context menu, live status/countdown title
     calendar.ts  CalendarProvider interface + the EventKit, feed and mock sources
     ics.ts       iCalendar reader: parsing and recurrence expansion
+    auto-status.ts  ON CALL for the length of a meeting, and back afterwards
     store.ts     atomic JSON persistence in userData
   preload/     contextBridge surface — the renderer's entire API
   renderer/    three windows: focusbar, dashboard, settings
     src/led/     canvas dot-matrix engine + <LedPanel>
   shared/      types, IPC channel names, LED fonts, display derivation
-test/          node:test suites for the calendar reader and the feed provider
+test/          node:test suites for the calendar reader, feed provider, statuses
 ```
 
 ### State flow
@@ -341,6 +343,28 @@ converted to an instant per occurrence, so a 9 am standup stays at 9 am across a
 daylight-saving change. **Cost**: a daily rule set up years ago would otherwise
 be walked one day at a time on every refresh, so expansion fast-forwards
 straight to the window when no `COUNT` makes the running total matter.
+
+### Going On Call for a meeting
+
+With **Settings → System → Go On Call in meetings** on — it is on by default —
+the status follows the calendar: the moment an event starts, Gerdoo switches to
+**ON CALL** and puts the event's end time under it (`UNTIL 2:30`), and when the
+event ends the previous status comes back. Back-to-back meetings hand the status
+straight on, so what returns at the end is whatever preceded the first one.
+
+The decision is one pure function, `resolveAutoStatus()` in
+`src/main/auto-status.ts`; `GerdooApp` feeds it the current event on every
+calendar change and owns the writing. While Gerdoo is driving, the event id and
+the status to restore live in `autoStatus` in the store — persisted, so quitting
+mid-meeting does not strand the status on ON CALL.
+
+Setting the status by hand ends the hold: your choice then stands until you
+change it again, and the next meeting takes over from there. All-day events are
+never "current", so they never trigger it, and turning the setting off during a
+meeting hands the status back rather than leaving it stuck.
+
+Events are re-read every 30 seconds, which is also how quickly the switch
+happens — a meeting starting on the minute shows up within half a minute of it.
 
 ### When a read fails
 
