@@ -100,9 +100,177 @@ function drawDevice(canvas, color, { filled = false, bg = null, radius = 0 } = {
   px(10, 7, 1.5, 1.5, color)
 }
 
-function writeIcon(relPath, size, draw) {
-  const canvas = createCanvas(size)
-  draw(canvas)
+/**
+ * Vector painter for the mascot.
+ *
+ * Shapes are drawn opaque, in back-to-front order, into a supersampled buffer
+ * that is box-filtered down at the end — cheaper to write than per-pixel
+ * coverage, and the only anti-aliasing the icon needs. Coordinates are the
+ * mascot's own user units (the 200 x 236 space of `Mascot.tsx`), mapped by
+ * `scale` / `offset` so the drawing here stays a transcription of the
+ * component rather than a second set of numbers.
+ */
+function createPainter(canvas, scale, offsetX, offsetY) {
+  const tx = (x) => x * scale + offsetX
+  const ty = (y) => y * scale + offsetY
+
+  const fillEllipse = (cx, cy, rx, ry, color) => {
+    const px = tx(cx)
+    const py = ty(cy)
+    const ax = rx * scale
+    const ay = ry * scale
+    for (let y = Math.floor(py - ay); y <= Math.ceil(py + ay); y++) {
+      for (let x = Math.floor(px - ax); x <= Math.ceil(px + ax); x++) {
+        const dx = (x + 0.5 - px) / ax
+        const dy = (y + 0.5 - py) / ay
+        if (dx * dx + dy * dy <= 1) canvas.set(x, y, color)
+      }
+    }
+  }
+
+  const fillCircle = (cx, cy, r, color) => fillEllipse(cx, cy, r, r, color)
+
+  const fillRoundRect = (x0, y0, w, h, r, color) => {
+    for (let y = Math.floor(ty(y0)); y < Math.ceil(ty(y0 + h)); y++) {
+      for (let x = Math.floor(tx(x0)); x < Math.ceil(tx(x0 + w)); x++) {
+        const lx = (x + 0.5 - tx(x0)) / scale
+        const ly = (y + 0.5 - ty(y0)) / scale
+        const cx = Math.min(lx, w - lx)
+        const cy = Math.min(ly, h - ly)
+        if (cx < r && cy < r && Math.hypot(r - cx, r - cy) > r) continue
+        canvas.set(x, y, color)
+      }
+    }
+  }
+
+  /** Stroked arc, stamped as a run of dots — used for the wink. */
+  const strokeArc = (cx, cy, r, from, to, width, color) => {
+    const steps = Math.max(16, Math.round(Math.abs(to - from) * r * scale))
+    for (let i = 0; i <= steps; i++) {
+      const angle = from + ((to - from) * i) / steps
+      fillCircle(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r, width / 2, color)
+    }
+  }
+
+  /** A fluff cluster: outline pass first, then the fill on top of it. */
+  const fillCluster = (circles, fill, outline, stroke) => {
+    for (const [cx, cy, r] of circles) fillCircle(cx, cy, r + stroke, outline)
+    for (const [cx, cy, r] of circles) fillCircle(cx, cy, r, fill)
+  }
+
+  return { fillEllipse, fillCircle, fillRoundRect, strokeArc, fillCluster }
+}
+
+// The mascot's palette and geometry, kept in step with
+// `src/renderer/src/components/Mascot.tsx`.
+const FUR_HEAD = [217, 161, 92, 255]
+const FUR_BODY = [207, 148, 80, 255]
+const FUR_EAR = [191, 132, 66, 255]
+const MUZZLE = [240, 199, 140, 255]
+const OUTLINE = [79, 47, 20, 255]
+const INK = [43, 35, 32, 255]
+const TONGUE = [242, 163, 163, 255]
+const COLLAR = [217, 52, 43, 255]
+const GOLD = [217, 164, 65, 255]
+const BONE = [241, 238, 226, 255]
+const WHITE = [255, 255, 255, 255]
+
+const EAR = [
+  [44, 94, 25],
+  [34, 122, 27],
+  [38, 148, 22]
+]
+const BODY = [
+  [100, 206, 56],
+  [58, 212, 34],
+  [142, 212, 34],
+  [100, 180, 44]
+]
+const HEAD = [
+  [100, 90, 54],
+  [62, 66, 30],
+  [138, 66, 30],
+  [100, 50, 34],
+  [68, 110, 30],
+  [132, 110, 30],
+  [100, 26, 16],
+  [84, 32, 13],
+  [116, 32, 13]
+]
+
+function drawMascot(p) {
+  const STROKE = 2.5
+  const mirror = (circles) => circles.map(([x, y, r]) => [200 - x, y, r])
+
+  p.fillCluster(BODY, FUR_BODY, OUTLINE, STROKE)
+  p.fillCluster(EAR, FUR_EAR, OUTLINE, STROKE)
+  p.fillCluster(mirror(EAR), FUR_EAR, OUTLINE, STROKE)
+  p.fillCluster(HEAD, FUR_HEAD, OUTLINE, STROKE)
+
+  p.fillEllipse(100, 122, 39, 31, MUZZLE)
+
+  // Open smile: a dark bowl with the tongue sitting in it.
+  p.fillEllipse(100, 134, 25, 14, OUTLINE)
+  p.fillEllipse(100, 133, 23, 12, INK)
+  p.fillEllipse(100, 142, 14, 9, TONGUE)
+
+  p.fillEllipse(100, 106, 15, 12, INK)
+  p.fillEllipse(94, 102, 4, 3, WHITE)
+
+  p.fillEllipse(74, 88, 11, 13, INK)
+  p.fillCircle(70, 83, 4, WHITE)
+  // The winking eye, matching the component's arc.
+  p.strokeArc(129, 96, 13, Math.PI * 1.15, Math.PI * 1.85, 5, INK)
+
+  p.fillRoundRect(58, 164, 84, 19, 8, OUTLINE)
+  p.fillRoundRect(60, 166, 80, 15, 6, COLLAR)
+  p.fillRoundRect(97.5, 180, 5, 12, 2.5, GOLD)
+
+  // Bone tag: every outline pass first, so the lobes read as one shape.
+  const lobes = [
+    [88, 194, 7],
+    [88, 204, 7],
+    [112, 194, 7],
+    [112, 204, 7]
+  ]
+  for (const [cx, cy, r] of lobes) p.fillCircle(cx, cy, r + 2.5, OUTLINE)
+  p.fillRoundRect(83.5, 189.5, 33, 19, 8, OUTLINE)
+  p.fillRoundRect(86, 192, 28, 14, 6, BONE)
+  for (const [cx, cy, r] of lobes) p.fillCircle(cx, cy, r, BONE)
+}
+
+/** Box-filters a supersampled buffer down to `size`, alpha-weighted so the
+    edges of the rounded background do not darken against transparency. */
+function downsample(source, size, factor) {
+  const out = createCanvas(size)
+  const samples = factor * factor
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      let r = 0
+      let g = 0
+      let b = 0
+      let a = 0
+      for (let sy = 0; sy < factor; sy++) {
+        for (let sx = 0; sx < factor; sx++) {
+          const i = ((y * factor + sy) * source.size + x * factor + sx) * 4
+          const alpha = source.data[i + 3]
+          r += source.data[i] * alpha
+          g += source.data[i + 1] * alpha
+          b += source.data[i + 2] * alpha
+          a += alpha
+        }
+      }
+      if (a === 0) continue
+      out.set(x, y, [Math.round(r / a), Math.round(g / a), Math.round(b / a), Math.round(a / samples)])
+    }
+  }
+  return out
+}
+
+function writeIcon(relPath, size, draw, { supersample = 1 } = {}) {
+  const drawn = createCanvas(size * supersample)
+  draw(drawn)
+  const canvas = supersample > 1 ? downsample(drawn, size, supersample) : drawn
   const file = join(root, relPath)
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, encodePng({ width: size, height: size, data: canvas.data }))
@@ -110,11 +278,39 @@ function writeIcon(relPath, size, draw) {
 }
 
 const BLACK = [0, 0, 0, 255]
-const CYAN = [111, 211, 255, 255]
 const SHELL = [17, 20, 24, 255]
 
+/** Rounded-square backdrop, in the same 16-unit design grid as the tray glyph. */
+function fillBackdrop(canvas, color, radius) {
+  const r = (radius / 16) * canvas.size
+  for (let y = 0; y < canvas.size; y++) {
+    for (let x = 0; x < canvas.size; x++) {
+      const cx = Math.min(x, canvas.size - 1 - x)
+      const cy = Math.min(y, canvas.size - 1 - y)
+      if (cx < r && cy < r && Math.hypot(r - cx, r - cy) > r) continue
+      canvas.set(x, y, color)
+    }
+  }
+}
+
 // Template images: macOS recolours black-on-alpha for light/dark menu bars.
+// The mascot is far too detailed to survive 16 px of monochrome, so the tray
+// keeps the LED-bar glyph.
 writeIcon('resources/trayTemplate.png', 16, (c) => drawDevice(c, BLACK))
 writeIcon('resources/trayTemplate@2x.png', 32, (c) => drawDevice(c, BLACK))
-// App icon for packaging.
-writeIcon('build/icon.png', 1024, (c) => drawDevice(c, CYAN, { bg: SHELL, radius: 3.4 }))
+
+// App icon: the mascot on the device shell, drawn at 3x and filtered down.
+writeIcon(
+  'build/icon.png',
+  1024,
+  (canvas) => {
+    fillBackdrop(canvas, SHELL, 3.4)
+    // Fit the 200 x 236 mascot box into the middle of the icon, sitting a
+    // little low so the head lands on the optical centre.
+    const scale = (canvas.size * 0.8) / 236
+    const offsetX = (canvas.size - 200 * scale) / 2
+    const offsetY = (canvas.size - 236 * scale) / 2 + canvas.size * 0.02
+    drawMascot(createPainter(canvas, scale, offsetX, offsetY))
+  },
+  { supersample: 3 }
+)
