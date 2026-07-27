@@ -35,6 +35,13 @@ export interface PersistedState {
   calendarCache: CalendarCache | null
 }
 
+/**
+ * Session records kept on disk. The Dashboard heatmap looks back a full year,
+ * so the cap has to outlast that — 5000 is several years of heavy use and still
+ * a state file of a couple of megabytes.
+ */
+const MAX_SESSIONS = 5000
+
 export const DEFAULT_SETTINGS: Settings = {
   presets: [15, 25, 35, 50],
   selectedPresetIndex: 1,
@@ -84,7 +91,7 @@ export class Store {
         settings: { ...DEFAULT_SETTINGS, ...(raw.settings ?? {}) },
         window: { ...DEFAULT_STATE.window, ...(raw.window ?? {}) },
         status: { ...DEFAULT_STATE.status, ...(raw.status ?? {}) },
-        sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-500) : []
+        sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-MAX_SESSIONS) : []
       }
     } catch (error) {
       console.error('[gerdoo] state file unreadable, starting fresh:', error)
@@ -109,7 +116,7 @@ export class Store {
   }
 
   addSession(session: SessionRecord): void {
-    this.state.sessions = [...this.state.sessions, session].slice(-500)
+    this.state.sessions = [...this.state.sessions, session].slice(-MAX_SESSIONS)
     this.scheduleWrite()
   }
 

@@ -4,6 +4,7 @@ import { SEMANTIC_COLORS } from '@shared/status'
 import type { CalendarEvent, SessionRecord } from '@shared/types'
 import { useNow } from '@/hooks/useNow'
 import { useSnapshot } from '@/hooks/useSnapshot'
+import { Heatmap } from './Heatmap'
 
 const DAY_MS = 86_400_000
 
@@ -151,6 +152,11 @@ export function Dashboard(): React.ReactElement {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="section">
+          <h2 className="section__title">Focus history</h2>
+          <Heatmap sessions={snapshot.sessions} now={now} />
         </section>
 
         <section className="section">
