@@ -120,6 +120,37 @@ body.body--app {
   color: var(--text-faint);
 }
 
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.day + .day {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.day__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.day__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.day__meta {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -127,6 +158,11 @@ body.body--app {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* An event that has already finished stays visible but recedes. */
+.list__row[data-past] {
+  opacity: 0.5;
 }
 
 .list__row {

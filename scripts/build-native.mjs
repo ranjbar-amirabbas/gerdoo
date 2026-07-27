@@ -6,7 +6,7 @@
  * ad-hoc signed so macOS can keep a stable identity for the granted permission.
  */
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -20,11 +20,29 @@ if (process.platform !== 'darwin') {
   process.exit(0)
 }
 
+const upToDate =
+  existsSync(output) &&
+  [source, plist].every((file) => statSync(file).mtimeMs <= statSync(output).mtimeMs)
+
+if (upToDate && !process.argv.includes('--force')) {
+  console.log('calendar helper is up to date — pass --force to rebuild')
+  process.exit(0)
+}
+
+// `swiftc --version` exits 0 while printing the licence complaint, so check the
+// output rather than the exit code.
+let toolchain = ''
 try {
-  execFileSync('swiftc', ['--version'], { stdio: 'ignore' })
+  toolchain = execFileSync('swiftc', ['--version'], { encoding: 'utf8', stdio: 'pipe' })
 } catch {
   console.error('swiftc not found — install the Xcode Command Line Tools:')
   console.error('  xcode-select --install')
+  process.exit(1)
+}
+
+if (/license agreement/i.test(toolchain)) {
+  console.error('the Xcode licence has not been accepted, so swiftc will not run:')
+  console.error('  sudo xcodebuild -license accept')
   process.exit(1)
 }
 

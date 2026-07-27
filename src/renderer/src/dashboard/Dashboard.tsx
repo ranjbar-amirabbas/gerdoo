@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { describeWhen, formatClock, formatDuration } from '@shared/display'
 import { SEMANTIC_COLORS } from '@shared/status'
-import type { SessionRecord } from '@shared/types'
+import type { CalendarEvent, SessionRecord } from '@shared/types'
 import { useNow } from '@/hooks/useNow'
 import { useSnapshot } from '@/hooks/useSnapshot'
 
@@ -11,6 +11,57 @@ function startOfDay(epoch: number): number {
   const date = new Date(epoch)
   date.setHours(0, 0, 0, 0)
   return date.getTime()
+}
+
+interface DayGroup {
+  dayStart: number
+  label: string
+  events: CalendarEvent[]
+  busyMs: number
+}
+
+/** Groups the calendar window into days, dropping days that finished already. */
+function groupByDay(events: CalendarEvent[], now: number): DayGroup[] {
+  const today = startOfDay(now)
+  const groups = new Map<number, CalendarEvent[]>()
+
+  for (const event of events) {
+    const dayStart = startOfDay(event.startsAt)
+    if (dayStart < today) continue
+    const bucket = groups.get(dayStart)
+    if (bucket) bucket.push(event)
+    else groups.set(dayStart, [event])
+  }
+
+  return [...groups.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([dayStart, dayEvents]) => ({
+      dayStart,
+      label: dayLabel(dayStart, today),
+      events: [...dayEvents].sort((a, b) => a.startsAt - b.startsAt),
+      busyMs: dayEvents
+        .filter((event) => !event.isAllDay)
+        .reduce((total, event) => total + (event.endsAt - event.startsAt), 0)
+    }))
+}
+
+/** `2h 55m` — a booked total reads badly as a countdown. */
+function formatBooked(ms: number): string {
+  const minutes = Math.round(ms / 60_000)
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  if (hours === 0) return `${rest}m`
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`
+}
+
+function dayLabel(dayStart: number, today: number): string {
+  if (dayStart === today) return 'Today'
+  if (dayStart === today + DAY_MS) return 'Tomorrow'
+  return new Date(dayStart).toLocaleDateString(undefined, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short'
+  })
 }
 
 function focusMsOn(sessions: SessionRecord[], dayStart: number): number {
@@ -51,10 +102,7 @@ export function Dashboard(): React.ReactElement {
 
   if (!snapshot) return <div className="app" aria-busy="true" />
 
-  const dayStart = startOfDay(now)
-  const todayEvents = snapshot.calendar.events.filter(
-    (event) => event.startsAt < dayStart + DAY_MS && event.endsAt > dayStart
-  )
+  const week = groupByDay(snapshot.calendar.events, now)
   const peak = Math.max(...stats.days.map((d) => d.focusMs), 25 * 60_000)
   const accent = SEMANTIC_COLORS.focus.accent
 
@@ -107,32 +155,48 @@ export function Dashboard(): React.ReactElement {
 
         <section className="section">
           <h2 className="section__title">
-            Today&apos;s schedule
+            The week ahead
             {snapshot.calendar.source === 'sample' ? ' · sample data' : ''}
           </h2>
-          {todayEvents.length === 0 ? (
+          {week.length === 0 ? (
             <p className="empty">
               {snapshot.calendar.access === 'authorized'
-                ? 'No events on your calendar today.'
+                ? 'Nothing on your calendar for the next seven days.'
                 : 'Calendar access is not granted — open Settings to allow it.'}
             </p>
           ) : (
-            <ul className="list">
-              {todayEvents.map((event) => (
-                <li className="list__row" key={event.id}>
-                  <span>{event.isAllDay ? 'All day' : formatClock(event.startsAt)}</span>
-                  <strong>{event.title}</strong>
-                  <span>{event.calendar}</span>
-                  <span className="tag" data-kind={event.endsAt > now ? 'completed' : undefined}>
-                    {event.startsAt <= now && event.endsAt > now
-                      ? 'Now'
-                      : event.endsAt <= now
-                        ? 'Done'
-                        : formatClock(event.endsAt)}
+            week.map((day) => (
+              <div className="day" key={day.dayStart}>
+                <div className="day__header">
+                  <span className="day__label">{day.label}</span>
+                  <span className="day__meta">
+                    {day.events.length} event{day.events.length === 1 ? '' : 's'}
+                    {day.busyMs > 0 ? ` · ${formatBooked(day.busyMs)} booked` : ''}
                   </span>
-                </li>
-              ))}
-            </ul>
+                </div>
+                <ul className="list">
+                  {day.events.map((event) => {
+                    const live = event.startsAt <= now && event.endsAt > now
+                    const past = event.endsAt <= now
+                    return (
+                      <li className="list__row" key={event.id} data-past={past || undefined}>
+                        <span>{event.isAllDay ? 'All day' : formatClock(event.startsAt)}</span>
+                        <strong>{event.title}</strong>
+                        <span>{event.calendar}</span>
+                        {/* An all-day event has no meaningful end time to show. */}
+                        {event.isAllDay ? (
+                          <span />
+                        ) : (
+                          <span className="tag" data-kind={live ? 'completed' : undefined}>
+                            {live ? 'Now' : past ? 'Done' : formatClock(event.endsAt)}
+                          </span>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ))
           )}
         </section>
 
