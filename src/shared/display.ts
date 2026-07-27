@@ -72,6 +72,23 @@ export function fitLabel(text: string, max: number): string {
   return `${clean.slice(0, Math.max(1, max - 1)).trim()}.`
 }
 
+/** Characters of the small font that fit across the compact grid. */
+const COMPACT_LABEL_MAX = 10
+
+/** Labels that would be trimmed to nonsense have a compact form of their own. */
+const COMPACT_LABELS: Record<string, string> = {
+  'DO NOT DISTURB': 'DND',
+  'SESSION DONE': 'DONE'
+}
+
+/**
+ * The mode line for the compact device. The narrow grid holds ten small
+ * characters, so the long labels are shortened rather than clipped.
+ */
+export function compactLabel(label: string): string {
+  return COMPACT_LABELS[label] ?? fitLabel(label, COMPACT_LABEL_MAX)
+}
+
 export interface FocusSuggestion {
   freeMs: number
   suggestMinutes: number
