@@ -113,7 +113,7 @@ export interface AppSnapshot {
   now: number
 }
 
-export const SNAPSHOT_CHANNEL = 'stitch:snapshot'
-export const SOUND_CHANNEL = 'stitch:sound'
+export const SNAPSHOT_CHANNEL = 'gerdoo:snapshot'
+export const SOUND_CHANNEL = 'gerdoo:sound'
 
 export type SoundCue = 'complete' | 'start' | 'stop'

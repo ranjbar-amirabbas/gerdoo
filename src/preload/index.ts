@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type SetStatusRequest, type StartTimerRequest, type StitchApi } from '@shared/ipc'
+import { IPC, type SetStatusRequest, type StartTimerRequest, type GerdooApi } from '@shared/ipc'
 import { SNAPSHOT_CHANNEL, SOUND_CHANNEL, type AppSnapshot, type Settings } from '@shared/types'
 
 /**
@@ -7,7 +7,7 @@ import { SNAPSHOT_CHANNEL, SOUND_CHANNEL, type AppSnapshot, type Settings } from
  * `BrowserWindow` — every privileged operation goes through a named channel
  * that the main process validates.
  */
-const api: StitchApi = {
+const api: GerdooApi = {
   getSnapshot: () => ipcRenderer.invoke(IPC.snapshotGet),
   onSnapshot: (listener) => {
     const handler = (_event: Electron.IpcRendererEvent, snapshot: AppSnapshot): void =>
@@ -55,4 +55,4 @@ const api: StitchApi = {
   }
 }
 
-contextBridge.exposeInMainWorld('stitch', api)
+contextBridge.exposeInMainWorld('gerdoo', api)

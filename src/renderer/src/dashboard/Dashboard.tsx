@@ -214,7 +214,7 @@ export function Dashboard(): React.ReactElement {
                 <button
                   type="button"
                   className="button button--primary"
-                  onClick={() => void window.stitch.timer.start({})}
+                  onClick={() => void window.gerdoo.timer.start({})}
                 >
                   Start focus
                 </button>
@@ -248,7 +248,7 @@ export function Dashboard(): React.ReactElement {
               <button
                 type="button"
                 className="button button--danger"
-                onClick={() => void window.stitch.sessions.clear()}
+                onClick={() => void window.gerdoo.sessions.clear()}
               >
                 Clear history
               </button>

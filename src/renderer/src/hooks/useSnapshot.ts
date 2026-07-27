@@ -7,10 +7,10 @@ export function useSnapshot(): AppSnapshot | null {
 
   useEffect(() => {
     let alive = true
-    void window.stitch.getSnapshot().then((initial) => {
+    void window.gerdoo.getSnapshot().then((initial) => {
       if (alive) setSnapshot(initial)
     })
-    const off = window.stitch.onSnapshot((next) => setSnapshot(next))
+    const off = window.gerdoo.onSnapshot((next) => setSnapshot(next))
     return () => {
       alive = false
       off()

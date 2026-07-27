@@ -27,10 +27,10 @@ export class TrayController {
     const base = app.isPackaged ? app.getAppPath() : join(__dirname, '..', '..')
     const iconPath = join(base, 'resources', 'trayTemplate.png')
     const image = nativeImage.createFromPath(iconPath)
-    if (image.isEmpty()) console.error(`[stitch] tray icon missing at ${iconPath}`)
+    if (image.isEmpty()) console.error(`[gerdoo] tray icon missing at ${iconPath}`)
     image.setTemplateImage(true)
     this.tray = new Tray(image)
-    this.tray.setToolTip('Stitch')
+    this.tray.setToolTip('Gerdoo')
     this.tray.on('click', (_event, bounds) => this.actions.toggleFocusBar(bounds))
     this.tray.on('right-click', () => this.tray?.popUpContextMenu())
     this.update(snapshot)
@@ -83,7 +83,7 @@ export class TrayController {
       { label: 'Open Dashboard', click: () => this.actions.openDashboard() },
       { label: 'Settings…', accelerator: 'Command+,', click: () => this.actions.openSettings() },
       { type: 'separator' },
-      { label: 'Quit Stitch', accelerator: 'Command+Q', click: () => this.actions.quit() }
+      { label: 'Quit Gerdoo', accelerator: 'Command+Q', click: () => this.actions.quit() }
     ])
 
     this.tray.setContextMenu(menu)

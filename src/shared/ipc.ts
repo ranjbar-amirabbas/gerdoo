@@ -1,28 +1,28 @@
 import type { AppSnapshot, Settings, StatusId, TimerMode } from './types'
 
 export const IPC = {
-  snapshotGet: 'stitch:snapshot:get',
-  windowSetPinned: 'stitch:window:setPinned',
-  windowGetPinned: 'stitch:window:getPinned',
-  windowTogglePinned: 'stitch:window:togglePinned',
-  windowSetExpanded: 'stitch:window:setExpanded',
-  windowToggleExpanded: 'stitch:window:toggleExpanded',
-  windowHide: 'stitch:window:hide',
-  windowOpenDashboard: 'stitch:window:openDashboard',
-  windowOpenSettings: 'stitch:window:openSettings',
-  windowCloseSelf: 'stitch:window:closeSelf',
-  timerStart: 'stitch:timer:start',
-  timerPause: 'stitch:timer:pause',
-  timerResume: 'stitch:timer:resume',
-  timerToggle: 'stitch:timer:toggle',
-  timerStop: 'stitch:timer:stop',
-  timerSetTitle: 'stitch:timer:setTitle',
-  statusSet: 'stitch:status:set',
-  settingsUpdate: 'stitch:settings:update',
-  sessionsClear: 'stitch:sessions:clear',
-  calendarRefresh: 'stitch:calendar:refresh',
-  calendarRequestAccess: 'stitch:calendar:requestAccess',
-  calendarOpenPrivacySettings: 'stitch:calendar:openPrivacySettings'
+  snapshotGet: 'gerdoo:snapshot:get',
+  windowSetPinned: 'gerdoo:window:setPinned',
+  windowGetPinned: 'gerdoo:window:getPinned',
+  windowTogglePinned: 'gerdoo:window:togglePinned',
+  windowSetExpanded: 'gerdoo:window:setExpanded',
+  windowToggleExpanded: 'gerdoo:window:toggleExpanded',
+  windowHide: 'gerdoo:window:hide',
+  windowOpenDashboard: 'gerdoo:window:openDashboard',
+  windowOpenSettings: 'gerdoo:window:openSettings',
+  windowCloseSelf: 'gerdoo:window:closeSelf',
+  timerStart: 'gerdoo:timer:start',
+  timerPause: 'gerdoo:timer:pause',
+  timerResume: 'gerdoo:timer:resume',
+  timerToggle: 'gerdoo:timer:toggle',
+  timerStop: 'gerdoo:timer:stop',
+  timerSetTitle: 'gerdoo:timer:setTitle',
+  statusSet: 'gerdoo:status:set',
+  settingsUpdate: 'gerdoo:settings:update',
+  sessionsClear: 'gerdoo:sessions:clear',
+  calendarRefresh: 'gerdoo:calendar:refresh',
+  calendarRequestAccess: 'gerdoo:calendar:requestAccess',
+  calendarOpenPrivacySettings: 'gerdoo:calendar:openPrivacySettings'
 } as const
 
 export interface StartTimerRequest {
@@ -38,7 +38,7 @@ export interface SetStatusRequest {
   until?: number | null
 }
 
-export interface StitchApi {
+export interface GerdooApi {
   getSnapshot(): Promise<AppSnapshot>
   onSnapshot(listener: (snapshot: AppSnapshot) => void): () => void
   onSound(listener: (cue: string) => void): () => void

@@ -1,13 +1,13 @@
-// stitch-calendar — reads macOS Calendar (EventKit) and prints JSON on stdout.
+// gerdoo-calendar — reads macOS Calendar (EventKit) and prints JSON on stdout.
 //
 // Electron cannot talk to EventKit, so the main process spawns this helper.
 // It always exits 0 and always prints a JSON object; the caller reads `status`
 // to tell "no events" apart from "no permission".
 //
 // Usage:
-//   stitch-calendar --status              # permission state only, no prompt
-//   stitch-calendar --days 2              # events from start of today, N days out
-//   stitch-calendar --days 2 --request    # same, but may show the access prompt
+//   gerdoo-calendar --status              # permission state only, no prompt
+//   gerdoo-calendar --days 2              # events from start of today, N days out
+//   gerdoo-calendar --days 2 --request    # same, but may show the access prompt
 
 import EventKit
 import Foundation

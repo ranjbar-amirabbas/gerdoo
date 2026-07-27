@@ -24,15 +24,15 @@ export function ControlStrip({ snapshot }: ControlStripProps): React.ReactElemen
         label={primaryLabel}
         showLabel
         onClick={() => {
-          if (active) void window.stitch.timer.toggle()
-          else void window.stitch.timer.start({})
+          if (active) void window.gerdoo.timer.toggle()
+          else void window.gerdoo.timer.start({})
         }}
       />
       <DeviceButton
         icon={<Square size={14} strokeWidth={2.4} />}
         label="Stop session"
         disabled={timer.phase === 'idle'}
-        onClick={() => void window.stitch.timer.stop()}
+        onClick={() => void window.gerdoo.timer.stop()}
       />
 
       <span className="controls__divider" aria-hidden="true" />
@@ -41,7 +41,7 @@ export function ControlStrip({ snapshot }: ControlStripProps): React.ReactElemen
         presets={settings.presets}
         index={settings.selectedPresetIndex}
         disabled={active}
-        onChange={(index) => void window.stitch.settings.update({ selectedPresetIndex: index })}
+        onChange={(index) => void window.gerdoo.settings.update({ selectedPresetIndex: index })}
       />
 
       <span className="controls__divider" aria-hidden="true" />
@@ -49,7 +49,7 @@ export function ControlStrip({ snapshot }: ControlStripProps): React.ReactElemen
       <StatusMenu
         value={status.id}
         customLabel={status.customLabel}
-        onSelect={(id) => void window.stitch.status.set({ id })}
+        onSelect={(id) => void window.gerdoo.status.set({ id })}
       />
 
       <div className="controls__spacer" />
@@ -57,7 +57,7 @@ export function ControlStrip({ snapshot }: ControlStripProps): React.ReactElemen
       <DeviceButton
         icon={<Settings2 size={15} strokeWidth={2.2} />}
         label="Settings"
-        onClick={() => void window.stitch.window.openSettings()}
+        onClick={() => void window.gerdoo.window.openSettings()}
       />
     </div>
   )

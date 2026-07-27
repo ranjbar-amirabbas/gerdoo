@@ -1,18 +1,18 @@
-appId: com.stitch.focusbar
-productName: Stitch
+appId: com.gerdoo.focusbar
+productName: Gerdoo
 directories:
   buildResources: build
   output: dist
 files:
   - out/**/*
   - resources/**/*
-  - '!resources/stitch-calendar'
+  - '!resources/gerdoo-calendar'
   - package.json
 # The EventKit helper must stay outside the asar so it can be executed, and so
 # macOS can attribute the Calendar permission to a stable binary on disk.
 extraResources:
-  - from: resources/stitch-calendar
-    to: stitch-calendar
+  - from: resources/gerdoo-calendar
+    to: gerdoo-calendar
 mac:
   category: public.app-category.productivity
   target:
@@ -22,7 +22,7 @@ mac:
   # Menu-bar app: no Dock icon, no app switcher entry.
   extendInfo:
     LSUIElement: true
-    NSCalendarsUsageDescription: Stitch shows your current and next calendar events on the Focus Bar.
-    NSCalendarsFullAccessUsageDescription: Stitch shows your current and next calendar events on the Focus Bar.
+    NSCalendarsUsageDescription: Gerdoo shows your current and next calendar events on the Focus Bar.
+    NSCalendarsFullAccessUsageDescription: Gerdoo shows your current and next calendar events on the Focus Bar.
 dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}

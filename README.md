@@ -1,4 +1,4 @@
-# Stitch
+# Gerdoo
 
 A menu bar focus companion for macOS. The product is a **virtual focus device**:
 a small, hardware-styled window with a dot-matrix LED panel that shows your
@@ -46,7 +46,7 @@ src/
 
 The main process owns all state and pushes a full `AppSnapshot` to every window
 on each change. Renderers never hold authoritative state; they render the
-snapshot and call back through `window.stitch.*`. What the LED panel shows is
+snapshot and call back through `window.gerdoo.*`. What the LED panel shows is
 derived in one place — `deriveLedContent()` in `src/shared/display.ts` — so the
 panel, the tray title and the Dashboard can never disagree.
 
@@ -90,19 +90,19 @@ startup, so unplugging a monitor cannot strand the window offscreen.
 `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`, a strict CSP
 in each HTML file, and `setWindowOpenHandler` sending any external URL to the
 system browser. The renderer sees exactly the methods declared in
-`StitchApi` (`src/shared/ipc.ts`) — no `ipcRenderer`, no `require`, no
+`GerdooApi` (`src/shared/ipc.ts`) — no `ipcRenderer`, no `require`, no
 `BrowserWindow`.
 
 ## Calendar data
 
 Events come from the real **macOS Calendar** via EventKit. Electron has no
-EventKit binding, so `native/StitchCalendar.swift` is compiled to a small helper
+EventKit binding, so `native/GerdooCalendar.swift` is compiled to a small helper
 binary that prints JSON, and the main process spawns it on each refresh:
 
 ```bash
-npm run build:native      # → resources/stitch-calendar (also run by `npm run dist`)
-./resources/stitch-calendar --status     # permission state, no prompt
-./resources/stitch-calendar --days 7     # events as JSON
+npm run build:native      # → resources/gerdoo-calendar (also run by `npm run dist`)
+./resources/gerdoo-calendar --status     # permission state, no prompt
+./resources/gerdoo-calendar --days 7     # events as JSON
 ```
 
 The helper carries its `Info.plist` in a linked `__TEXT,__info_plist` section
@@ -115,7 +115,7 @@ executed.
 
 macOS only shows the Calendar prompt when the request comes from a real app
 bundle, so **use the packaged app** (`npm run dist`, then launch
-`dist/mac-arm64/Stitch.app`). Stitch asks once, shortly after first launch;
+`dist/mac-arm64/Gerdoo.app`). Gerdoo asks once, shortly after first launch;
 Settings → Calendar access can ask again, or deep-link to Privacy & Security →
 Calendars if the answer was no. Running `npm run dev` inherits Electron's own
 bundle identity, which has no usage strings — expect `notDetermined` there and

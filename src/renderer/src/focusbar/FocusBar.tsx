@@ -15,19 +15,19 @@ export function FocusBar(): React.ReactElement {
   const now = useNow()
   const reduceMotion = useReducedMotion(snapshot?.settings.reduceMotion)
 
-  useEffect(() => window.stitch.onSound(playCue), [])
+  useEffect(() => window.gerdoo.onSound(playCue), [])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         // Main ignores this while pinned, so a pinned bar never vanishes.
-        void window.stitch.window.hide()
+        void window.gerdoo.window.hide()
       } else if (event.key.toLowerCase() === 'e' && event.metaKey) {
         event.preventDefault()
-        void window.stitch.window.toggleExpanded()
+        void window.gerdoo.window.toggleExpanded()
       } else if (event.key.toLowerCase() === 'p' && event.metaKey) {
         event.preventDefault()
-        void window.stitch.window.togglePinned()
+        void window.gerdoo.window.togglePinned()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -48,12 +48,12 @@ export function FocusBar(): React.ReactElement {
         className="device"
         data-expanded={expanded ? 'true' : undefined}
         style={{ '--accent': palette.accent, '--glow': palette.glow } as React.CSSProperties}
-        aria-label="Stitch Focus Bar"
+        aria-label="Gerdoo Focus Bar"
       >
         <header className="device__grip drag">
           <span className="brand">
             <span className="brand__mark" aria-hidden="true" />
-            STITCH
+            GERDOO
           </span>
           <div className="device__grip-actions no-drag">
             <button
@@ -63,7 +63,7 @@ export function FocusBar(): React.ReactElement {
               aria-pressed={pinned}
               title={pinned ? 'Unpin from top (⌘P)' : 'Pin above other apps (⌘P)'}
               aria-label={pinned ? 'Unpin Focus Bar' : 'Pin Focus Bar above other apps'}
-              onClick={() => void window.stitch.window.togglePinned()}
+              onClick={() => void window.gerdoo.window.togglePinned()}
             >
               <Pin size={14} strokeWidth={2.2} fill={pinned ? 'currentColor' : 'none'} />
             </button>
@@ -73,7 +73,7 @@ export function FocusBar(): React.ReactElement {
               aria-expanded={expanded}
               title={expanded ? 'Collapse controls (⌘E)' : 'Expand controls (⌘E)'}
               aria-label={expanded ? 'Collapse controls' : 'Expand controls'}
-              onClick={() => void window.stitch.window.toggleExpanded()}
+              onClick={() => void window.gerdoo.window.toggleExpanded()}
             >
               {expanded ? <ChevronUp size={14} strokeWidth={2.4} /> : <ChevronDown size={14} strokeWidth={2.4} />}
             </button>

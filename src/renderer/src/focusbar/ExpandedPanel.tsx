@@ -24,7 +24,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
             value={timer.title}
             aria-label="Session label"
             placeholder="Session label"
-            onChange={(event) => void window.stitch.timer.setTitle(event.target.value)}
+            onChange={(event) => void window.gerdoo.timer.setTitle(event.target.value)}
           />
         </label>
       </div>
@@ -39,7 +39,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
               className="chip no-drag"
               data-active={index === settings.selectedPresetIndex ? 'true' : undefined}
               disabled={sessionActive}
-              onClick={() => void window.stitch.settings.update({ selectedPresetIndex: index })}
+              onClick={() => void window.gerdoo.settings.update({ selectedPresetIndex: index })}
             >
               {preset}
               <small>MIN</small>
@@ -50,7 +50,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
             className="chip chip--break no-drag"
             title={`Start a ${settings.breakMinutes} minute break`}
             onClick={() =>
-              void window.stitch.timer.start({ mode: 'break', minutes: settings.breakMinutes })
+              void window.gerdoo.timer.start({ mode: 'break', minutes: settings.breakMinutes })
             }
           >
             <Coffee size={13} strokeWidth={2.2} />
@@ -69,7 +69,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
               className="chip no-drag"
               data-active={status.id === id ? 'true' : undefined}
               aria-label={id === 'custom' ? status.customLabel || 'Custom' : STATUSES[id].label}
-              onClick={() => void window.stitch.status.set({ id })}
+              onClick={() => void window.gerdoo.status.set({ id })}
             >
               <span
                 className="status-dot"
@@ -102,7 +102,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
             <button
               type="button"
               className="chip chip--suggest no-drag"
-              onClick={() => void window.stitch.timer.start({ minutes: suggestion.suggestMinutes })}
+              onClick={() => void window.gerdoo.timer.start({ minutes: suggestion.suggestMinutes })}
             >
               Start {suggestion.suggestMinutes} min focus
             </button>
@@ -117,7 +117,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
             className="toggle no-drag"
             role="switch"
             aria-checked={settings.soundEnabled}
-            onClick={() => void window.stitch.settings.update({ soundEnabled: !settings.soundEnabled })}
+            onClick={() => void window.gerdoo.settings.update({ soundEnabled: !settings.soundEnabled })}
           >
             {settings.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
             Sound
@@ -127,7 +127,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
             className="toggle no-drag"
             role="switch"
             aria-checked={windowState.pinned}
-            onClick={() => void window.stitch.window.togglePinned()}
+            onClick={() => void window.gerdoo.window.togglePinned()}
           >
             <Pin size={14} />
             Always on top
@@ -135,7 +135,7 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
           <button
             type="button"
             className="toggle toggle--action no-drag"
-            onClick={() => void window.stitch.window.openDashboard()}
+            onClick={() => void window.gerdoo.window.openDashboard()}
           >
             <LayoutDashboard size={14} />
             Open Dashboard
