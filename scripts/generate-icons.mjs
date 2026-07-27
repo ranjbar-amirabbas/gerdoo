@@ -63,43 +63,6 @@ function createCanvas(size) {
   return { size, data, set }
 }
 
-/** Draws in a 16x16 design grid, scaled up to `size`. */
-function drawDevice(canvas, color, { filled = false, bg = null, radius = 0 } = {}) {
-  const s = canvas.size / 16
-  const px = (gx, gy, gw, gh, c) => {
-    for (let y = Math.round(gy * s); y < Math.round((gy + gh) * s); y++) {
-      for (let x = Math.round(gx * s); x < Math.round((gx + gw) * s); x++) canvas.set(x, y, c)
-    }
-  }
-
-  if (bg) {
-    const r = radius * s
-    for (let y = 0; y < canvas.size; y++) {
-      for (let x = 0; x < canvas.size; x++) {
-        const cx = Math.min(x, canvas.size - 1 - x)
-        const cy = Math.min(y, canvas.size - 1 - y)
-        const inCorner = cx < r && cy < r
-        if (inCorner && Math.hypot(r - cx, r - cy) > r) continue
-        canvas.set(x, y, bg)
-      }
-    }
-  }
-
-  if (filled) {
-    px(1.5, 4, 13, 8, color)
-    return
-  }
-
-  // Shell outline with clipped corners, then three lit "pixels" inside.
-  px(2, 3.5, 12, 1, color)
-  px(2, 11.5, 12, 1, color)
-  px(1.5, 4, 1, 7.5, color)
-  px(13.5, 4, 1, 7.5, color)
-  px(4.5, 7, 1.5, 1.5, color)
-  px(7.25, 7, 1.5, 1.5, color)
-  px(10, 7, 1.5, 1.5, color)
-}
-
 /**
  * Vector painter for the mascot.
  *
@@ -267,6 +230,33 @@ function downsample(source, size, factor) {
   return out
 }
 
+/**
+ * The mascot reduced to a tray glyph, in the same 16-unit design grid as the
+ * LED-bar mark it replaces.
+ *
+ * A template image is one colour plus alpha, so the face cannot be drawn — it
+ * has to be punched out of the silhouette. Nothing here is smaller than about
+ * three quarters of a grid unit, which is the finest detail that survives at
+ * 16 px.
+ */
+function drawMascotGlyph(canvas, color) {
+  const p = createPainter(canvas, canvas.size / 16, 0, 0)
+  const HOLE = [0, 0, 0, 0]
+
+  // Ears wide and low, and the top pouf flattened: a tall silhouette reads as
+  // a spike at this size, a wide one reads as a dog.
+  p.fillEllipse(3.1, 10.4, 2.4, 3.9, color)
+  p.fillEllipse(12.9, 10.4, 2.4, 3.9, color)
+  p.fillEllipse(8, 4.6, 3, 1.9, color)
+  p.fillCircle(8, 8.2, 4.4, color)
+
+  // Punched-out face: eyes, then a muzzle with the nose left standing in it.
+  p.fillCircle(6.2, 7.4, 0.9, HOLE)
+  p.fillCircle(9.8, 7.4, 0.9, HOLE)
+  p.fillEllipse(8, 10.6, 2.7, 1.9, HOLE)
+  p.fillEllipse(8, 10, 1, 0.8, color)
+}
+
 function writeIcon(relPath, size, draw, { supersample = 1 } = {}) {
   const drawn = createCanvas(size * supersample)
   draw(drawn)
@@ -294,10 +284,10 @@ function fillBackdrop(canvas, color, radius) {
 }
 
 // Template images: macOS recolours black-on-alpha for light/dark menu bars.
-// The mascot is far too detailed to survive 16 px of monochrome, so the tray
-// keeps the LED-bar glyph.
-writeIcon('resources/trayTemplate.png', 16, (c) => drawDevice(c, BLACK))
-writeIcon('resources/trayTemplate@2x.png', 32, (c) => drawDevice(c, BLACK))
+writeIcon('resources/trayTemplate.png', 16, (c) => drawMascotGlyph(c, BLACK), { supersample: 8 })
+writeIcon('resources/trayTemplate@2x.png', 32, (c) => drawMascotGlyph(c, BLACK), {
+  supersample: 8
+})
 
 // App icon: the mascot on the device shell, drawn at 3x and filtered down.
 writeIcon(
