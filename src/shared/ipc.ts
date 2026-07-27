@@ -5,6 +5,7 @@ export const IPC = {
   windowSetPinned: 'gerdoo:window:setPinned',
   windowGetPinned: 'gerdoo:window:getPinned',
   windowTogglePinned: 'gerdoo:window:togglePinned',
+  windowSetScale: 'gerdoo:window:setScale',
   windowSetExpanded: 'gerdoo:window:setExpanded',
   windowToggleExpanded: 'gerdoo:window:toggleExpanded',
   windowHide: 'gerdoo:window:hide',
@@ -46,6 +47,8 @@ export interface GerdooApi {
     setPinned(pinned: boolean): Promise<boolean>
     getPinned(): Promise<boolean>
     togglePinned(): Promise<boolean>
+    /** Uniform device zoom; clamped to `MIN_DEVICE_SCALE`…`MAX_DEVICE_SCALE`. */
+    setScale(scale: number): Promise<number>
     setExpanded(expanded: boolean): Promise<boolean>
     toggleExpanded(): Promise<boolean>
     hide(): Promise<void>

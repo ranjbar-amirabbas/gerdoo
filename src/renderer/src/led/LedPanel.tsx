@@ -57,13 +57,27 @@ export function LedPanel({
 
     const observer = new ResizeObserver(resize)
     observer.observe(host)
-    // A window dragged to a non-Retina display needs a fresh dot grid.
-    const media = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
-    media.addEventListener('change', resize)
+
+    // A fresh dot grid is needed whenever the device pixel ratio moves: a window
+    // dragged to a non-Retina display, and every step of a device resize — which
+    // is a page zoom, so it changes the ratio while the CSS box stays put and
+    // the ResizeObserver above never fires. Each query only matches one ratio,
+    // so the listener is re-armed against the new one after every change.
+    let media: MediaQueryList | null = null
+    const onPixelRatioChange = (): void => {
+      resize()
+      watchPixelRatio()
+    }
+    function watchPixelRatio(): void {
+      media?.removeEventListener('change', onPixelRatioChange)
+      media = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+      media.addEventListener('change', onPixelRatioChange)
+    }
+    watchPixelRatio()
 
     return () => {
       observer.disconnect()
-      media.removeEventListener('change', resize)
+      media?.removeEventListener('change', onPixelRatioChange)
       engine.destroy()
       engineRef.current = null
     }

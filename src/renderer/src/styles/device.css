@@ -1,8 +1,40 @@
 /* ---------------------------------------------------------------- the device */
 
 .stage {
+  position: relative;
   height: 100%;
   padding: 14px; /* room for the cast shadow inside the transparent window */
+}
+
+/* Resize corner. Inside the shell, because the transparent padding around it
+   passes the mouse straight through to whatever is behind the window. */
+.device__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  display: grid;
+  place-items: end;
+  padding: 3px;
+}
+
+.device__resize span {
+  width: 9px;
+  height: 9px;
+  opacity: 0.28;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 2px,
+    var(--text-dim) 2px 3px
+  );
+  transition: opacity var(--motion-fast) var(--ease);
+}
+
+.device__resize:hover span {
+  opacity: 0.65;
 }
 
 .device {

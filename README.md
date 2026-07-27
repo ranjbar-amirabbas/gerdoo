@@ -4,7 +4,8 @@ A menu bar focus companion for macOS. The product is a **virtual focus device**:
 a small, hardware-styled window with a dot-matrix LED panel that shows your
 timer, your status, and what is coming up next.
 
-<!-- Focus Bar: 520 × 230 collapsed, 520 × 490 expanded. -->
+<!-- Focus Bar: 520 × 230 collapsed, 520 × 490 expanded, at scale 1. Dragging an
+     edge zooms the whole device between 0.7× and 2×; the ratio stays locked. -->
 
 ## Installing a release
 
@@ -209,6 +210,8 @@ events come from.
 | `Escape` | Hide the Focus Bar (ignored while pinned) |
 | `⌘E` | Expand / collapse the control panel |
 | `⌘P` | Pin / unpin |
+| `⌘+` / `⌘−` | Grow / shrink the device |
+| `⌘0` | Reset the device to its design size |
 | `⌘,` | Settings (from the tray menu) |
 
 ## Known gaps

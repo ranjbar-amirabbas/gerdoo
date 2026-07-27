@@ -239,6 +239,11 @@ class GerdooApp {
       this.publish()
       return result
     })
+    handle<number>(IPC.windowSetScale, (scale) => {
+      const result = this.windows.setScale(Number(scale))
+      this.publish()
+      return result
+    })
     handle<boolean>(IPC.windowSetExpanded, (expanded) => {
       const result = this.windows.setExpanded(Boolean(expanded))
       this.publish()
