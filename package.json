@@ -11,6 +11,7 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "node scripts/test.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "build:native": "node scripts/build-native.mjs",
     "dist": "npm run build:native && npm run build && electron-builder",

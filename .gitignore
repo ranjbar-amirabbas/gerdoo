@@ -5,3 +5,6 @@ dist/
 .DS_Store
 resources/gerdoo-calendar
 *.tsbuildinfo
+
+# Bundled test output — see scripts/test.mjs
+.test-build/

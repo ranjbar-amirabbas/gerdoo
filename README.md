@@ -73,6 +73,7 @@ to hide it (while unpinned). Right-click opens the menu.
 | `npm run dev` | electron-vite dev server with HMR for all three renderers |
 | `npm run build` | Bundles main, preload and renderers into `out/` |
 | `npm run typecheck` | Type-checks the Node side and the web side separately |
+| `npm test` | Runs the test suites (see below) |
 | `npm run dist` | Builds and packages for the machine you are on, into `dist/` |
 | `npm run dist:mac` | macOS arm64 DMG |
 | `npm run dist:win` | Windows NSIS installer (x64 + arm64) and an x64 portable exe |
@@ -81,6 +82,32 @@ to hide it (while unpinned). Right-click opens the menu.
 
 Each installer has to be built on its own platform: the macOS DMG needs
 `codesign`, and NSIS needs Windows (or Wine).
+
+## Tests
+
+```bash
+npm test
+```
+
+`scripts/test.mjs` bundles each file in `test/` with esbuild — the same
+transform the app gets, rather than a second opinion about what the source
+means — and then runs it under whichever host it needs:
+
+- **`*.test.ts`** run under `node --test`, and are run **four times**, under
+  UTC, `America/New_York`, `Asia/Tehran` and `Australia/Sydney`. The calendar
+  bugs worth catching are the ones that only appear off UTC, at a half-hour
+  offset, or in a southern-hemisphere DST cycle. `npm test -- --tz=UTC` narrows
+  it while iterating.
+- **`*.electron.test.ts`** run under Electron, because the code they cover uses
+  `net.fetch`, which only exists in a real Electron process. They register
+  ordinary `node:test` cases but count their own failures: `node:test` sets
+  `process.exitCode` from an `exit` handler, and `app.exit(code)` never gets
+  there, so a failing suite would otherwise report success.
+
+What is covered is the part with somewhere to hide: the iCalendar reader
+(recurrence expansion, timezones, malformed feeds) and the feed provider
+(caching, and every way a URL can be wrong) against a throwaway localhost
+server. The Electron UI is not covered.
 
 ## How it is put together
 
@@ -98,6 +125,7 @@ src/
   renderer/    three windows: focusbar, dashboard, settings
     src/led/     canvas dot-matrix engine + <LedPanel>
   shared/      types, IPC channel names, LED fonts, display derivation
+test/          node:test suites for the calendar reader and the feed provider
 ```
 
 ### State flow
