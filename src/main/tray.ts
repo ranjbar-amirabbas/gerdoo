@@ -11,6 +11,9 @@ export interface TrayActions {
   startFocus(): void
   toggleTimer(): void
   stopTimer(): void
+  /** Index into `settings.presets` — the focus length the next session takes. */
+  selectPreset(index: number): void
+  setBreakMinutes(minutes: number): void
   setStatus(id: StatusId): void
   openDashboard(): void
   openSettings(): void
@@ -34,6 +37,14 @@ const POSITION_KEY = 'NSStatusItem Preferred Position Item-0'
 const PREFERRED_POSITION = 250
 
 /**
+ * Break lengths the tray offers. The stepper on the Focus Bar and the Settings
+ * field both take any minute from 1 to 60, which is far too long a menu, so the
+ * tray carries the round ones — plus whatever is currently set, so a length
+ * picked elsewhere still shows up checked rather than silently missing.
+ */
+const BREAK_CHOICES = [3, 5, 10, 15, 20, 30]
+
+/**
  * Claim a spot near the clock, once, before the status item is created — AppKit
  * reads this at creation and never again. Only ever done on the first run: after
  * that the key belongs to the user, who can ⌘-drag the icon wherever they like.
@@ -45,6 +56,13 @@ export function seedMenuBarPosition(): void {
   } catch (error) {
     console.error('[gerdoo] could not set the menu bar position:', error)
   }
+}
+
+/** The offered break lengths, with the current one folded in and in order. */
+function breakChoices(current: number): number[] {
+  const choices = new Set(BREAK_CHOICES)
+  choices.add(current)
+  return [...choices].sort((a, b) => a - b)
 }
 
 export class TrayController {
@@ -113,6 +131,27 @@ export class TrayController {
         label: 'Stop Session',
         enabled: active || timer.phase === 'completed',
         click: () => this.actions.stopTimer()
+      },
+      { type: 'separator' },
+      {
+        // A running deadline never moves, so mid-session this queues the length
+        // for the next focus session — the label says which one it is setting.
+        label: active ? 'Next Focus Length' : 'Focus Length',
+        submenu: snapshot.settings.presets.map((minutes, index) => ({
+          label: `${minutes} min`,
+          type: 'radio' as const,
+          checked: index === snapshot.settings.selectedPresetIndex,
+          click: () => this.actions.selectPreset(index)
+        }))
+      },
+      {
+        label: 'Break Length',
+        submenu: breakChoices(snapshot.settings.breakMinutes).map((minutes) => ({
+          label: `${minutes} min`,
+          type: 'radio' as const,
+          checked: minutes === snapshot.settings.breakMinutes,
+          click: () => this.actions.setBreakMinutes(minutes)
+        }))
       },
       { type: 'separator' },
       {

@@ -3,7 +3,11 @@ import type { KeyboardEvent, WheelEvent } from 'react'
 interface PresetDialProps {
   presets: number[]
   index: number
-  disabled?: boolean
+  /**
+   * A session is running, so the pick lands on the next one rather than on the
+   * countdown in front of the user. The dial says NEXT instead of MIN.
+   */
+  queued?: boolean
   onChange(index: number): void
 }
 
@@ -15,12 +19,12 @@ interface PresetDialProps {
 export function PresetDial({
   presets,
   index,
-  disabled = false,
+  queued = false,
   onChange
 }: PresetDialProps): React.ReactElement {
   const minutes = presets[index] ?? presets[0] ?? 25
   const step = (delta: number): void => {
-    if (disabled || presets.length === 0) return
+    if (presets.length === 0) return
     const next = (index + delta + presets.length) % presets.length
     onChange(next)
   }
@@ -47,15 +51,18 @@ export function PresetDial({
     <div
       className="dial no-drag"
       role="spinbutton"
-      tabIndex={disabled ? -1 : 0}
-      aria-label="Focus length in minutes"
+      tabIndex={0}
+      data-queued={queued || undefined}
+      aria-label={queued ? 'Next focus length in minutes' : 'Focus length in minutes'}
       aria-valuenow={minutes}
       aria-valuetext={`${minutes} minutes`}
       aria-valuemin={presets[0]}
       aria-valuemax={presets[presets.length - 1]}
-      aria-disabled={disabled || undefined}
-      data-disabled={disabled || undefined}
-      title={`Focus length: ${minutes} min — click or scroll to change`}
+      title={
+        queued
+          ? `Next focus: ${minutes} min — click or scroll to change; this session keeps its own length`
+          : `Focus length: ${minutes} min — click or scroll to change`
+      }
       onClick={(event) => step(event.shiftKey ? -1 : 1)}
       onKeyDown={onKeyDown}
       onWheel={onWheel}
@@ -66,7 +73,7 @@ export function PresetDial({
         ))}
       </span>
       <span className="dial__value">{minutes}</span>
-      <span className="dial__unit">MIN</span>
+      <span className="dial__unit">{queued ? 'NEXT' : 'MIN'}</span>
     </div>
   )
 }

@@ -140,8 +140,13 @@ export class TimerService extends EventEmitter<TimerEvents> {
     this.emit('change')
   }
 
+  /**
+   * Sets the length the next session starts with. A running or paused session
+   * keeps its own — moving a live deadline would make the countdown a lie — but
+   * a completed one has nothing left to protect.
+   */
   setDurationMinutes(minutes: number): void {
-    if (this.state.phase !== 'idle') return
+    if (this.state.phase === 'running' || this.state.phase === 'paused') return
     const durationMs = Math.round(minutes * MINUTE)
     this.state = { ...this.state, durationMs, remainingMs: durationMs }
     this.emit('change')

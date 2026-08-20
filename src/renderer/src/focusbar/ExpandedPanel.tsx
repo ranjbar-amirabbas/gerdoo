@@ -1,4 +1,4 @@
-import { Coffee, LayoutDashboard, Pin, Repeat, Volume2, VolumeX } from 'lucide-react'
+import { Coffee, LayoutDashboard, Minus, Pin, Plus, Repeat, Volume2, VolumeX } from 'lucide-react'
 import { describeWhen, suggestFocus } from '@shared/display'
 import { paletteFor } from '@shared/palette'
 import { STATUSES, STATUS_ORDER } from '@shared/status'
@@ -16,6 +16,10 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
   const sessionActive = timer.phase === 'running' || timer.phase === 'paused'
   // One switch for the whole focus → break → focus loop; Settings splits the two.
   const autoCycle = settings.autoStartBreak && settings.autoStartFocus
+  // Break length is free to change at any time: the running deadline is never
+  // touched, and both the chip and auto-start read it when the break begins.
+  const setBreakMinutes = (minutes: number): void =>
+    void window.gerdoo.settings.update({ breakMinutes: Math.min(60, Math.max(1, minutes)) })
 
   return (
     <div className="panel">
@@ -34,7 +38,9 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
       </div>
 
       <div className="panel__row">
-        <span className="panel__label">Presets</span>
+        {/* Mid-session the picks queue up for the session after this one, so the
+            row keeps working rather than greying out. */}
+        <span className="panel__label">{sessionActive ? 'Next session' : 'Presets'}</span>
         <div className="chips">
           {settings.presets.map((preset, index) => (
             <button
@@ -42,7 +48,11 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
               type="button"
               className="chip no-drag"
               data-active={index === settings.selectedPresetIndex ? 'true' : undefined}
-              disabled={sessionActive}
+              title={
+                sessionActive
+                  ? `${preset} min — starts with the next focus session`
+                  : `${preset} minute focus session`
+              }
               onClick={() => void window.gerdoo.settings.update({ selectedPresetIndex: index })}
             >
               {preset}
@@ -60,6 +70,32 @@ export function ExpandedPanel({ snapshot, now }: ExpandedPanelProps): React.Reac
             <Coffee size={13} strokeWidth={2.2} />
             BREAK
           </button>
+          <div className="stepper no-drag" role="group" aria-label="Break length in minutes">
+            <button
+              type="button"
+              className="stepper__key"
+              aria-label="Shorten the break"
+              title="Shorten the break"
+              disabled={settings.breakMinutes <= 1}
+              onClick={() => setBreakMinutes(settings.breakMinutes - 1)}
+            >
+              <Minus size={11} strokeWidth={2.8} />
+            </button>
+            <span className="stepper__value">
+              {settings.breakMinutes}
+              <small>MIN</small>
+            </span>
+            <button
+              type="button"
+              className="stepper__key"
+              aria-label="Lengthen the break"
+              title="Lengthen the break"
+              disabled={settings.breakMinutes >= 60}
+              onClick={() => setBreakMinutes(settings.breakMinutes + 1)}
+            >
+              <Plus size={11} strokeWidth={2.8} />
+            </button>
+          </div>
         </div>
       </div>
 

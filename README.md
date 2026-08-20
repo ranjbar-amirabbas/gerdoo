@@ -115,7 +115,8 @@ What is covered is the part with somewhere to hide: the iCalendar reader
 (recurrence expansion, timezones, malformed feeds), the feed provider (caching,
 and every way a URL can be wrong) against a throwaway localhost server, and the
 calendar-driven status hand-off (`resolveAutoStatus`, which is pure for exactly
-this reason). The Electron UI is not covered.
+this reason), and what a length change may do to a timer that is already
+counting down. The Electron UI is not covered.
 
 ## How it is put together
 
@@ -151,6 +152,23 @@ panel, the tray title and the Dashboard can never disagree.
 interval, a hidden window, or a Mac that slept for an hour cannot make it drift;
 on `powerMonitor` resume it re-checks the deadline immediately. The running
 session is persisted, so quitting mid-session and reopening resumes it.
+
+A running deadline never moves under the user, so `setDurationMinutes()` only
+takes while the timer is idle. The preset dial and the preset chips stay live
+anyway: mid-session a pick is held in `pendingFocusMinutes` and spent on the
+**next** focus session — the dial says NEXT rather than MIN, and the expanded
+panel titles the row *Next session*. That queued length also beats the replay of
+the last focus session when auto-start hands a finished break back to focus, so
+changing the dial mid-cycle changes the cycle rather than being overruled by it.
+Break length has no such problem — a break reads `breakMinutes` when it starts —
+so the panel's break stepper (1–60) applies whenever it is touched.
+
+The tray menu carries both, so neither needs the Focus Bar on screen: **Focus
+Length** lists the presets and retitles itself *Next Focus Length* while a
+session runs, and **Break Length** offers the round values with the current one
+folded in, so a length set by the stepper or in Settings still shows up checked.
+Both go through the same `updateSettings()` path as the dial, which is also
+where lengths are clamped before they reach disk.
 
 ### The LED panel
 
