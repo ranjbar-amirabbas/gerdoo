@@ -22,6 +22,12 @@ import { WindowManager } from './windows'
  */
 const AUTO_CYCLE_LIMIT = 8
 
+/** A whole number of minutes between 1 and `max`. */
+function clampMinutes(minutes: number, max: number): number {
+  if (!Number.isFinite(minutes)) return 1
+  return Math.min(max, Math.max(1, Math.round(minutes)))
+}
+
 class GerdooApp {
   private readonly store = new Store()
   private readonly windows = new WindowManager(this.store)
@@ -42,6 +48,13 @@ class GerdooApp {
   private autoStarts = 0
   /** Length and label of the last focus session, replayed by auto-start focus. */
   private lastFocus: { minutes: number; title: string } | null = null
+  /**
+   * A focus length picked while a session was still running. The running
+   * deadline never moves under the user, so the choice waits here and takes the
+   * next focus session instead — including one auto-start hands over to, where
+   * it wins over `lastFocus`.
+   */
+  private pendingFocusMinutes: number | null = null
 
   constructor() {
     const { settings, timer } = this.store.get()
@@ -59,6 +72,10 @@ class GerdooApp {
         this.timer.toggle()
       },
       stopTimer: () => this.stopTimer(),
+      // Both go through `updateSettings`, so the tray queues a mid-session
+      // change exactly as the dial does rather than having a path of its own.
+      selectPreset: (index) => this.updateSettings({ selectedPresetIndex: index }),
+      setBreakMinutes: (minutes) => this.updateSettings({ breakMinutes: minutes }),
       setStatus: (id) => this.setStatus({ id }),
       openDashboard: () => this.windows.openDashboard(),
       openSettings: () => this.windows.openSettings(),
@@ -152,7 +169,11 @@ class GerdooApp {
     const previousMode = this.timer.getState().mode
     // Starting by hand ends whatever chain was running.
     this.autoStarts = 0
-    if (mode === 'focus') this.lastFocus = { minutes, title }
+    if (mode === 'focus') {
+      // This session is the one the queued length was waiting for.
+      this.pendingFocusMinutes = null
+      this.lastFocus = { minutes, title }
+    }
     this.timer.start({ mode, minutes, title })
     // A mode switch already fired its own cue via the `modeChange` handler.
     if (mode === previousMode) this.windows.playSound('start')
@@ -163,12 +184,23 @@ class GerdooApp {
     this.autoStarts = 0
     if (state.phase === 'completed') {
       this.timer.acknowledgeCompletion()
+      this.applyPendingFocusMinutes()
       return
     }
     const record = this.timer.stop()
     if (record) this.store.addSession(record)
+    this.applyPendingFocusMinutes()
     this.windows.playSound('stop')
     this.publish()
+  }
+
+  /** Moves a queued focus length onto the timer once it no longer runs a deadline. */
+  private applyPendingFocusMinutes(): void {
+    if (this.pendingFocusMinutes === null) return
+    const phase = this.timer.getState().phase
+    if (phase === 'running' || phase === 'paused') return
+    this.timer.setDurationMinutes(this.pendingFocusMinutes)
+    this.pendingFocusMinutes = null
   }
 
   private onSessionComplete(mode: TimerMode): void {
@@ -213,13 +245,21 @@ class GerdooApp {
         this.timer.start({ mode: 'break', minutes: settings.breakMinutes, title: 'BREAK' })
       } else {
         // Repeat the focus session that led into this break, so a 15/5 rhythm
-        // keeps its 15 rather than snapping back to the selected preset.
-        const next = this.lastFocus ?? {
+        // keeps its 15 rather than snapping back to the selected preset — unless
+        // the user picked a new length mid-session, which is them saying so.
+        const previous = this.lastFocus ?? {
           minutes: settings.presets[settings.selectedPresetIndex] ?? 25,
           title: settings.defaultTitle
         }
-        this.timer.start({ mode: 'focus', minutes: next.minutes, title: next.title })
+        const minutes = this.pendingFocusMinutes ?? previous.minutes
+        this.pendingFocusMinutes = null
+        this.lastFocus = { minutes, title: previous.title }
+        this.timer.start({ mode: 'focus', minutes, title: previous.title })
       }
+    } else {
+      // Nothing takes over, so a length queued mid-session lands on the idle
+      // device now rather than waiting to be acknowledged.
+      this.applyPendingFocusMinutes()
     }
     this.publish()
   }
@@ -279,11 +319,22 @@ class GerdooApp {
     if (patch.modeColors !== undefined) {
       patch = { ...patch, modeColors: normalizeModeColors(patch.modeColors) }
     }
+    // Lengths reach here from the Focus Bar, the tray and Settings alike, and a
+    // zero-minute session would complete the moment it started.
+    if (patch.breakMinutes !== undefined) {
+      patch = { ...patch, breakMinutes: clampMinutes(patch.breakMinutes, 60) }
+    }
+    if (Array.isArray(patch.presets)) {
+      patch = { ...patch, presets: patch.presets.map((minutes) => clampMinutes(minutes, 180)) }
+    }
     const settings = this.store.patchSettings(patch)
     if (patch.launchAtLogin !== undefined) this.applyLoginItem(settings)
     if (patch.selectedPresetIndex !== undefined || patch.presets !== undefined) {
       const minutes = settings.presets[settings.selectedPresetIndex] ?? 25
-      this.timer.setDurationMinutes(minutes)
+      const phase = this.timer.getState().phase
+      // Mid-session the deadline stands; the new length is held for the next one.
+      if (phase === 'running' || phase === 'paused') this.pendingFocusMinutes = minutes
+      else this.timer.setDurationMinutes(minutes)
     }
     if (patch.icsUrl !== undefined) this.calendar.setIcsUrl(settings.icsUrl)
     if (patch.calendarSource !== undefined) this.calendar.setSource(settings.calendarSource)

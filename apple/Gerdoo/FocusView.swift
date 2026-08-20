@@ -82,6 +82,9 @@ struct FocusView: View {
         .disabled(timer.mode == .break && timer.isActive)
       }
 
+      // Changing the length of a session that is already running would make the
+      // deadline a lie, so mid-session a pick is held for the session after this
+      // one rather than greying the row out.
       HStack(spacing: 8) {
         ForEach(Array(settings.presets.enumerated()), id: \.offset) { index, minutes in
           let selected = index == settings.selectedPresetIndex
@@ -103,13 +106,36 @@ struct FocusView: View {
               .foregroundStyle(selected ? model.accent : DeviceTokens.textDim)
           }
           .buttonStyle(.plain)
-          // Changing the length of a session that is already running would make
-          // the deadline a lie.
-          .disabled(timer.isActive)
+          .accessibilityHint(timer.isActive ? "Starts with the next focus session" : "")
         }
       }
-      .opacity(timer.isActive ? 0.45 : 1)
+
+      HStack(spacing: 10) {
+        DeviceLegend("Break")
+        Spacer()
+        breakStepper
+      }
     }
+  }
+
+  /// The break length, reachable without leaving the device — and free to change
+  /// mid-session, since the break only reads it when it starts.
+  private var breakStepper: some View {
+    Stepper(
+      value: Binding(
+        get: { settings.breakMinutes },
+        set: { minutes in
+          var updated = settings
+          updated.breakMinutes = minutes
+          model.update(settings: updated)
+        }), in: 1...60
+    ) {
+      Text("\(settings.breakMinutes) min")
+        .font(.footnote.weight(.medium))
+        .foregroundStyle(DeviceTokens.textDim)
+        .padding(.trailing, 6)
+    }
+    .fixedSize()
   }
 
   // ---------------------------------------------------------------- transport

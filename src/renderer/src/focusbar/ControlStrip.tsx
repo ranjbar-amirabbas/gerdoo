@@ -41,7 +41,7 @@ export function ControlStrip({ snapshot }: ControlStripProps): React.ReactElemen
       <PresetDial
         presets={settings.presets}
         index={settings.selectedPresetIndex}
-        disabled={active}
+        queued={active}
         onChange={(index) => void window.gerdoo.settings.update({ selectedPresetIndex: index })}
       />
 
